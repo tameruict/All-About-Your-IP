@@ -1,0 +1,5 @@
+# Mock: Tor exit list hit
+group=specialist
+listed_zones:
+  - torexit.dan.me.uk -> 127.0.0.2
+expect: hard_hit = true, verdict max = "Nghi ngờ" unless a second source confirms

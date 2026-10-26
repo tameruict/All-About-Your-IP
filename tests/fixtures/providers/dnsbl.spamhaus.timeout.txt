@@ -1,0 +1,3 @@
+# Mock: resolver does not answer within the DNSBL timeout.
+answer=TIMEOUT
+must_not=crash, must_not=count_as_not_listed, must_disable_zone_and_log

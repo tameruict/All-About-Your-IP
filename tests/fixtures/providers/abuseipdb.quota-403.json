@@ -1,0 +1,5 @@
+{
+  "errors": [
+    { "detail": "Daily rate limit of 1000 requests reached. Try again in 6 hours.", "status": 429 }
+  ]
+}

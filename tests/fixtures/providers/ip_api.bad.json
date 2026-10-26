@@ -1,0 +1,21 @@
+{
+  "status": "success",
+  "country": "Russia",
+  "countryCode": "RU",
+  "region": "MOW",
+  "regionName": "Moscow",
+  "city": "Moscow",
+  "zip": "101000",
+  "lat": 55.7558,
+  "lon": 37.6173,
+  "timezone": "Europe/Moscow",
+  "isp": "Stark Industries Solutions",
+  "org": "bulletproof-hosting",
+  "as": "AS44477 Stark Industries Solutions Ltd",
+  "asname": "STARK-INDUSTRIES",
+  "reverse": "spam-relay-01.badhost.example",
+  "mobile": false,
+  "proxy": true,
+  "hosting": true,
+  "query": "45.155.205.1"
+}

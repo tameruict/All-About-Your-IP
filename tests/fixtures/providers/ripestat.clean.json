@@ -1,0 +1,18 @@
+{
+  "status": "ok",
+  "status_code": 200,
+  "data": {
+    "resource": "8.8.8.0/24",
+    "asns": [ { "asn": 15169, "holder": "GOOGLE, US", "announced": true } ],
+    "prefix": "8.8.8.0/24",
+    "block": "8.8.8.0/24",
+    "name": "GOOGLE",
+    "shortname": "GOOGLE",
+    "is_announced": true,
+    "category": "cidr_root",
+    "irr_sources": ["RADB"],
+    "query_starttime": "2026-10-25T05:12:00",
+    "query_endtime": "2026-10-25T05:12:00"
+  },
+  "see_also": []
+}

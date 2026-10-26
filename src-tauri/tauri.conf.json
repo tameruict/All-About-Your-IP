@@ -1,0 +1,79 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "IP Checker",
+  "mainBinaryName": "ip-checker",
+  "version": "0.1.0",
+  "identifier": "com.ipchecker.desktop",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "IP CHECKER // TERMINAL",
+        "width": 1280,
+        "height": 860,
+        "minWidth": 1024,
+        "minHeight": 700,
+        "resizable": true,
+        "fullscreen": false,
+        "center": true,
+        "decorations": true,
+        "transparent": false,
+        "visible": true,
+        "theme": "Dark",
+        "backgroundColor": "#050810"
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' asset: http://asset.localhost data: blob: https://*.basemaps.cartocdn.com https://*.tile.openstreetmap.org; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com; worker-src 'self' blob:",
+      "freezePrototype": false,
+      "dangerousDisableAssetCspModification": false,
+      "assetProtocol": {
+        "enable": true,
+        "scope": [
+          "$APPDATA/ip-checker/**",
+          "$APPDATA/ip-checker/exports/**"
+        ]
+      }
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "nsis"
+    ],
+    "createUpdaterArtifacts": false,
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.ico"
+    ],
+    "publisher": "IP Checker",
+    "shortDescription": "Kiem tra IP da nguon: geo, ASN, fraud, abuse, DNSBL, proxy leak",
+    "longDescription": "IP Checker - kiem tra do sach cua mot IP truoc khi dung lam proxy / VPS / tai khoan. Da nguon, co quorum, khong mot provider nao quyet dinh ket luan.",
+    "copyright": "Copyright © 2026 IP Checker",
+    "category": "DeveloperTool",
+    "windows": {
+      "nsis": {
+        "installMode": "perMachine",
+        "languages": [
+          "English",
+          "Vietnamese"
+        ],
+        "displayLanguageSelector": false
+      },
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper",
+        "silent": true
+      },
+      "allowDowngrades": true
+    }
+  },
+  "plugins": {}
+}

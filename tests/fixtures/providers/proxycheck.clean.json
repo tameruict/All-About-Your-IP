@@ -1,0 +1,21 @@
+{
+  "status": "ok",
+  "8.8.8.8": {
+    "asn": "AS15169",
+    "range": "8.8.8.0/24",
+    "hostname": "dns.google",
+    "provider": "Google LLC",
+    "continent": "Asia",
+    "country": "Singapore",
+    "isocode": "SG",
+    "region": "Central Singapore",
+    "city": "Singapore",
+    "timezone": "Asia/Singapore",
+    "latitude": 1.2868,
+    "longitude": 103.8503,
+    "proxy": "no",
+    "type": "Business",
+    "risk": 0
+  },
+  "query_time": 12
+}

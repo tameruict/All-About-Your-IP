@@ -1,0 +1,754 @@
+# IP Checker â€” provider registry (spec Â§5.1, Â§5.2, Â§5.3, Â§5.5)
+#
+# THIS FILE CONTAINS NO KEYS. API keys live in Windows Credential Manager
+# (service "com.ipchecker.app", account = provider id). See spec Â§2.1 / Â§11.
+#
+# Field contract (Â§5.5):
+#   id                  registry id, must equal the `pub const ID` in the adapter
+#   category            geo | asn | fraud | abuse | threat_intel | blacklist | network | leak | speed | local_db
+#   upstream            root data source â€” votes are de-duplicated by upstream+category (Â§6.2)
+#   method              api | dns | bgp | local_db
+#   requires_key        true => skipped with skip_reason=missing_key when no key is stored
+#   weight_in_category  share of the category weight BEFORE health decay; â‰¤ 0.40 (Â§6.4)
+#   timeout_ms          5000â€“8000 (Â§4.3)
+#   rate_limit          requests/minute for the free tier; 0 = unknown/unlimited
+#   enabled_by_default  run out of the box without any configuration
+#   thresholds          Â§6.1 normalisation in the provider's OWN scale:
+#                         raw < clean_below          â†’ Signal::Clean
+#                         clean_below..bad_above     â†’ Signal::Suspicious
+#                         raw > bad_above            â†’ Signal::Bad
+#   zone                DNSBL only â€” queried as <reversed-ip>.<zone>
+#   group               DNSBL only â€” spamhaus | commercial | community | specialist
+#   listed_verdict      DNSBL only â€” bad | suspicious (Â§6.1 / Â§6.5)
+#
+# A group is ONE vote no matter how many zones it holds (Â§5.3).
+
+version: "1.0.0"
+updated_at: "2026-10-25"
+
+providers:
+  # ===================================================================
+  # Â§5.1 â€” GEO (API)
+  # ===================================================================
+  - id: ip_api
+    category: geo
+    implemented: true
+    adapter_file: "providers/ip_api.rs"
+    status: "real"
+    upstream: ip-api
+    method: api
+    requires_key: false
+    weight_in_category: 0.30
+    timeout_ms: 5000
+    rate_limit: 45          # Â§5.1: 45 req/phÃºt on the free tier
+    enabled_by_default: true
+
+  - id: ipwho
+    category: geo
+    implemented: true
+    adapter_file: "providers/ipwho.rs"
+    status: "real"
+    upstream: ipwho.is
+    method: api
+    requires_key: false
+    weight_in_category: 0.25
+    timeout_ms: 6000
+    rate_limit: 60
+    enabled_by_default: true
+
+  - id: ipinfo
+    category: geo
+    implemented: true
+    adapter_file: "providers/ipinfo.rs"
+    status: "real"
+    upstream: ipinfo
+    method: api
+    requires_key: true     # free token, 50k/month â€” optional, never blocks a verdict
+    weight_in_category: 0.20
+    timeout_ms: 6000
+    rate_limit: 0
+    enabled_by_default: true
+
+  # ===================================================================
+  # Â§5.1 / Â§7.3 â€” GEO (local DB, bundled, offline)
+  # Votes are de-duplicated by upstream, so MaxMind-family DBs collapse
+  # into one vote even when three of them are installed (Â§6.2).
+  # ===================================================================
+  - id: maxmind_geolite2_city
+    category: local_db
+    implemented: false
+    adapter_file: null
+    status: "planned"
+    upstream: maxmind
+    method: local_db
+    requires_key: false     # free MaxMind account needed to DOWNLOAD, not to query
+    weight_in_category: 0.15
+    timeout_ms: 5000
+    rate_limit: 0
+    enabled_by_default: false   # requires the .mmdb file to be present
+    db_name: GeoLite2-City
+    db_update_url: "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-City&license_key=KEY&suffix=tar.gz"
+    stale_after_days: 60        # Â§7.3 â€” older than 60 days â‡’ confidence penalty
+
+  - id: maxmind_geolite2_country
+    category: local_db
+    implemented: false
+    adapter_file: null
+    status: "planned"
+    upstream: maxmind
+    method: local_db
+    requires_key: false
+    weight_in_category: 0.10
+    timeout_ms: 5000
+    rate_limit: 0
+    enabled_by_default: false
+    db_name: GeoLite2-Country
+    stale_after_days: 60
+
+  - id: ip2location_lite
+    category: local_db
+    implemented: false
+    adapter_file: null
+    status: "planned"
+    upstream: ip2location
+    method: local_db
+    requires_key: false
+    weight_in_category: 0.10
+    timeout_ms: 5000
+    rate_limit: 0
+    enabled_by_default: false
+    db_name: DB11.LITE
+    stale_after_days: 60
+
+  - id: dbip_lite
+    category: local_db
+    implemented: false
+    adapter_file: null
+    status: "planned"
+    upstream: db-ip
+    method: local_db
+    requires_key: false
+    weight_in_category: 0.10
+    timeout_ms: 5000
+    rate_limit: 0
+    enabled_by_default: false
+    db_name: dbip-city-lite
+    stale_after_days: 60
+
+  # ===================================================================
+  # Â§5.1 / Â§7.4 â€” ASN, prefix, RIR (independent of geo databases)
+  # ===================================================================
+  - id: ripestat
+    category: asn
+    implemented: true
+    adapter_file: "providers/ripestat.rs"
+    status: "real"
+    upstream: ripestat
+    method: api
+    requires_key: false
+    weight_in_category: 0.35
+    timeout_ms: 8000
+    rate_limit: 0
+    enabled_by_default: true
+
+  - id: bgpview
+    category: asn
+    implemented: true
+    adapter_file: "providers/bgpview.rs"
+    status: "real"
+    upstream: bgpview
+    method: api
+    requires_key: false
+    weight_in_category: 0.25
+    timeout_ms: 7000
+    rate_limit: 0
+    enabled_by_default: true
+
+  - id: team_cymru
+    category: asn
+    implemented: true
+    adapter_file: "providers/team_cymru.rs"
+    status: "real"
+    upstream: team-cymru
+    method: dns              # origin.asn.cymru.com â€” no HTTP API (Â§5.1)
+    requires_key: false
+    weight_in_category: 0.30
+    timeout_ms: 5000
+    rate_limit: 0
+    enabled_by_default: true
+
+  # ===================================================================
+  # Â§5.2 â€” FRAUD / PROXY / VPN
+  # Quorum: â‰¥2 primary fraud votes with a non-Unknown signal, else the
+  # verdict is capped at "ChÆ°a Ä‘á»§ dá»¯ liá»‡u" (Â§6.3).
+  # ===================================================================
+  - id: ipqualityscore
+    category: fraud
+    implemented: true
+    adapter_file: "providers/ipqs.rs"
+    status: "real"
+    upstream: ipqualityscore
+    method: api
+    requires_key: true       # ~5.000/month free
+    weight_in_category: 0.35
+    timeout_ms: 8000
+    rate_limit: 0
+    enabled_by_default: true
+    thresholds:
+      clean_below: 25        # Â§6.1 example â€” verify against current IPQS docs
+      bad_above: 75
+
+  - id: proxycheck
+    category: fraud
+    implemented: true
+    adapter_file: "providers/proxycheck.rs"
+    status: "real"
+    upstream: proxycheck
+    method: api
+    requires_key: false      # works keyless on the free tier
+    weight_in_category: 0.30
+    timeout_ms: 7000
+    rate_limit: 60           # ~1.000/day free
+    enabled_by_default: true
+    thresholds:
+      clean_below: 20
+      bad_above: 70
+
+  - id: scamalytics
+    category: fraud
+    implemented: true
+    adapter_file: "providers/scamalytics.rs"
+    status: "real"
+    upstream: scamalytics
+    method: api
+    requires_key: true       # official API only â€” NEVER scrape (Â§5.4)
+    weight_in_category: 0.25
+    timeout_ms: 8000
+    rate_limit: 0
+    enabled_by_default: true
+    thresholds:
+      clean_below: 20
+      bad_above: 70
+
+  # ---- secondary proxy/hosting hints (not primary fraud votes, Â§5.2) ----
+  - id: ip_api_flags
+    category: fraud
+    implemented: true
+    adapter_file: "providers/ip_api.rs"
+    status: "real"
+    upstream: ip-api          # same upstream as ip_api â‡’ collapses into one vote (Â§6.2)
+    method: api
+    requires_key: false
+    weight_in_category: 0.05
+    timeout_ms: 5000
+    rate_limit: 45
+    enabled_by_default: true
+
+  - id: ipinfo_privacy
+    category: fraud
+    implemented: true
+    adapter_file: "providers/ipinfo.rs"
+    status: "real"
+    upstream: ipinfo          # same upstream as ipinfo â‡’ collapses into one vote (Â§6.2)
+    method: api
+    requires_key: true
+    weight_in_category: 0.05
+    timeout_ms: 6000
+    rate_limit: 0
+    enabled_by_default: true
+
+  # ===================================================================
+  # Â§5.3 â€” ABUSE / THREAT INTEL
+  # ===================================================================
+  - id: abuseipdb
+    category: abuse
+    implemented: true
+    adapter_file: "providers/abuseipdb.rs"
+    status: "real"
+    upstream: abuseipdb
+    method: api
+    requires_key: true        # ~1.000/day free
+    weight_in_category: 0.50
+    timeout_ms: 8000
+    rate_limit: 0
+    enabled_by_default: true
+    thresholds:               # Â§6.1: abuseConfidenceScore
+      clean_below: 10         # user requirement: < 10% is "clean"
+      bad_above: 50
+    fields:                   # what the adapter must surface
+      - abuseConfidenceScore
+      - totalReports
+      - numDistinctUsers
+      - lastReportedAt
+      - usageType
+
+  - id: blocklist_de
+    category: abuse
+    implemented: false
+    adapter_file: null
+    status: "planned"
+    upstream: blocklist.de
+    method: api
+    requires_key: false
+    weight_in_category: 0.20
+    timeout_ms: 7000
+    rate_limit: 0
+    enabled_by_default: true
+
+  - id: greynoise
+    category: threat_intel
+    implemented: true
+    adapter_file: "providers/greynoise.rs"
+    status: "real"
+    upstream: greynoise
+    method: api
+    requires_key: false       # community API, limited
+    weight_in_category: 0.50
+    timeout_ms: 7000
+    rate_limit: 0
+    enabled_by_default: true
+
+  - id: virustotal
+    category: threat_intel
+    implemented: false
+    adapter_file: null
+    status: "planned"
+    upstream: virustotal
+    method: api
+    requires_key: true        # free key, secondary evidence only (Â§5.3)
+    weight_in_category: 0.30
+    timeout_ms: 8000
+    rate_limit: 0
+    enabled_by_default: false
+    thresholds:
+      clean_below: 1
+      bad_above: 3
+
+  - id: abusech
+    category: threat_intel
+    implemented: false
+    adapter_file: null
+    status: "planned"
+    upstream: abuse.ch
+    method: api
+    requires_key: false
+    weight_in_category: 0.20
+    timeout_ms: 7000
+    rate_limit: 0
+    enabled_by_default: false
+    notes: "Feodo / URLhaus â€” only a positive hit counts, never a primary vote (Â§5.3)"
+
+  # ===================================================================
+  # Â§5.3 â€” DNSBL, four groups, queried directly over DNS.
+  # Target 40â€“50 zones (Â§5.3); every zone below must be re-verified live
+  # at implementation time. A dead zone is disabled + logged, never fatal.
+  # ===================================================================
+
+  # ---- group: spamhaus (listing â‡’ Bad, and triggers the Â§6.5 downgrade) ----
+  - id: spamhaus_zen
+    category: blacklist
+    implemented: true
+    adapter_file: null
+    status: "real"
+    upstream: spamhaus
+    method: dns
+    requires_key: false
+    weight_in_category: 0.40
+    timeout_ms: 5000
+    rate_limit: 0
+    enabled_by_default: true
+    zone: zen.spamhaus.org
+    group: spamhaus
+    listed_verdict: bad
+    notes: "SBL/XBL/PBL combined. Fair-use policy â€” low query volume only (Â§14)."
+
+  - id: spamhaus_sbl
+    category: blacklist
+    implemented: true
+    adapter_file: null
+    status: "real"
+    upstream: spamhaus
+    method: dns
+    requires_key: false
+    weight_in_category: 0.30
+    timeout_ms: 5000
+    rate_limit: 0
+    enabled_by_default: true
+    zone: sbl.spamhaus.org
+    group: spamhaus
+    listed_verdict: bad
+
+  - id: spamhaus_xbl
+    category: blacklist
+    implemented: true
+    adapter_file: null
+    status: "real"
+    upstream: spamhaus
+    method: dns
+    requires_key: false
+    weight_in_category: 0.20
+    timeout_ms: 5000
+    rate_limit: 0
+    enabled_by_default: true
+    zone: xbl.spamhaus.org
+    group: spamhaus
+    listed_verdict: bad
+
+  - id: spamhaus_pbl
+    category: blacklist
+    implemented: true
+    adapter_file: null
+    status: "real"
+    upstream: spamhaus
+    method: dns
+    requires_key: false
+    weight_in_category: 0.10
+    timeout_ms: 5000
+    rate_limit: 0
+    enabled_by_default: true
+    zone: pbl.spamhaus.org
+    group: spamhaus
+    listed_verdict: suspicious
+    notes: "PBL = policy block list (dynamic/residential ranges), weaker than SBL/XBL."
+
+  # ---- group: commercial ----
+  - id: barracuda
+    category: blacklist
+    implemented: true
+    adapter_file: null
+    status: "real"
+    upstream: barracuda
+    method: dns
+    requires_key: false
+    weight_in_category: 0.35
+    timeout_ms: 6000
+    rate_limit: 0
+    enabled_by_default: true
+    zone: b.barracudacentral.org
+    group: commercial
+    listed_verdict: bad
+    notes: "Requires free registration for bulk use â€” verify terms at implement time."
+
+  - id: spamrats
+    category: blacklist
+    implemented: true
+    adapter_file: null
+    status: "real"
+    upstream: spamrats
+    method: dns
+    requires_key: false
+    weight_in_category: 0.20
+    timeout_ms: 6000
+    rate_limit: 0
+    enabled_by_default: true
+    zone: all.spamrats.com
+    group: commercial
+    listed_verdict: suspicious
+
+  - id: hostkarma
+    category: blacklist
+    implemented: true
+    adapter_file: null
+    status: "real"
+    upstream: hostkarma
+    method: dns
+    requires_key: false
+    weight_in_category: 0.15
+    timeout_ms: 6000
+    rate_limit: 0
+    enabled_by_default: true
+    zone: hostkarma.junkemailfilter.com
+    group: commercial
+    listed_verdict: suspicious
+
+  - id: inps_de
+    category: blacklist
+    implemented: true
+    adapter_file: null
+    status: "real"
+    upstream: inps.de
+    method: dns
+    requires_key: false
+    weight_in_category: 0.15
+    timeout_ms: 6000
+    rate_limit: 0
+    enabled_by_default: true
+    zone: dnsbl.inps.de
+    group: commercial
+    listed_verdict: suspicious
+
+  - id: mailspike
+    category: blacklist
+    implemented: true
+    adapter_file: null
+    status: "real"
+    upstream: mailspike
+    method: dns
+    requires_key: false
+    weight_in_category: 0.15
+    timeout_ms: 6000
+    rate_limit: 0
+    enabled_by_default: true
+    zone: bl.mailspike.net
+    group: commercial
+    listed_verdict: suspicious
+
+  # ---- group: community ----
+  - id: spamcop
+    category: blacklist
+    implemented: true
+    adapter_file: null
+    status: "real"
+    upstream: spamcop
+    method: dns
+    requires_key: false
+    weight_in_category: 0.25
+    timeout_ms: 6000
+    rate_limit: 0
+    enabled_by_default: true
+    zone: bl.spamcop.net
+    group: community
+    listed_verdict: suspicious
+
+  - id: sorbs
+    category: blacklist
+    implemented: true
+    adapter_file: null
+    status: "real"
+    upstream: sorbs
+    method: dns
+    requires_key: false
+    weight_in_category: 0.20
+    timeout_ms: 6000
+    rate_limit: 0
+    enabled_by_default: true
+    zone: dnsbl.sorbs.net
+    group: community
+    listed_verdict: suspicious
+
+  - id: uceprotect_1
+    category: blacklist
+    implemented: true
+    adapter_file: null
+    status: "real"
+    upstream: uceprotect
+    method: dns
+    requires_key: false
+    weight_in_category: 0.15
+    timeout_ms: 6000
+    rate_limit: 0
+    enabled_by_default: true
+    zone: dnsbl-1.uceprotect.net
+    group: community
+    listed_verdict: suspicious
+    notes: "L1 only â€” L2/L3 are pay-to-delist and massively over-report."
+
+  - id: uceprotect_2
+    category: blacklist
+    implemented: true
+    adapter_file: null
+    status: "real"
+    upstream: uceprotect
+    method: dns
+    requires_key: false
+    weight_in_category: 0.05
+    timeout_ms: 6000
+    rate_limit: 0
+    enabled_by_default: false
+    zone: dnsbl-2.uceprotect.net
+    group: community
+    listed_verdict: suspicious
+    notes: "Disabled by default: whole /24 listings produce false positives."
+
+  - id: njabl
+    category: blacklist
+    implemented: true
+    adapter_file: null
+    status: "real"
+    upstream: njabl
+    method: dns
+    requires_key: false
+    weight_in_category: 0.15
+    timeout_ms: 6000
+    rate_limit: 0
+    enabled_by_default: true
+    zone: dnsbl.njabl.org
+    group: community
+    listed_verdict: suspicious
+
+  - id: cbl_abuseat
+    category: blacklist
+    implemented: true
+    adapter_file: null
+    status: "real"
+    upstream: abuseat
+    method: dns
+    requires_key: false
+    weight_in_category: 0.10
+    timeout_ms: 5000
+    rate_limit: 0
+    enabled_by_default: true
+    zone: cbl.abuseat.org
+    group: community
+    listed_verdict: bad
+    notes: "Historically independent community list, now part of Spamhaus XBL infrastructure (§5.3)."
+
+  - id: psbl
+    category: blacklist
+    implemented: true
+    adapter_file: null
+    status: "real"
+    upstream: psbl
+    method: dns
+    requires_key: false
+    weight_in_category: 0.10
+    timeout_ms: 6000
+    rate_limit: 0
+    enabled_by_default: true
+    zone: psbl.surriel.com
+    group: community
+    listed_verdict: suspicious
+
+  # ---- group: specialist ----
+  - id: tor_exit_dan
+    category: blacklist
+    implemented: true
+    adapter_file: null
+    status: "real"
+    upstream: tor-project
+    method: dns
+    requires_key: false
+    weight_in_category: 0.40
+    timeout_ms: 6000
+    rate_limit: 0
+    enabled_by_default: true
+    zone: torexit.dan.me.uk
+    group: specialist
+    listed_verdict: bad
+    notes: "Tor exit â‡’ Â§6.5 downgrade. Also falls back to the Tor Project exit list."
+
+  - id: dronebl
+    category: blacklist
+    implemented: true
+    adapter_file: null
+    status: "real"
+    upstream: dronebl
+    method: dns
+    requires_key: false
+    weight_in_category: 0.25
+    timeout_ms: 6000
+    rate_limit: 0
+    enabled_by_default: true
+    zone: dnsbl.dronebl.org
+    group: specialist
+    listed_verdict: suspicious
+
+  - id: efnet_rbl
+    category: blacklist
+    implemented: true
+    adapter_file: null
+    status: "real"
+    upstream: efnet
+    method: dns
+    requires_key: false
+    weight_in_category: 0.15
+    timeout_ms: 6000
+    rate_limit: 0
+    enabled_by_default: true
+    zone: rbl.efnetrbl.org
+    group: specialist
+    listed_verdict: suspicious
+
+  - id: backscatterer
+    category: blacklist
+    implemented: true
+    adapter_file: null
+    status: "real"
+    upstream: backscatterer
+    method: dns
+    requires_key: false
+    weight_in_category: 0.10
+    timeout_ms: 6000
+    rate_limit: 0
+    enabled_by_default: true
+    zone: ips.backscatterer.org
+    group: specialist
+    listed_verdict: suspicious
+    notes: "Backscatter (misconfigured mailers) â€” noisy, keep weight low."
+
+  - id: spamhaus_dbl
+    category: blacklist
+    implemented: true
+    adapter_file: null
+    status: "real"
+    upstream: spamhaus_dbl
+    method: dns
+    requires_key: false
+    weight_in_category: 0.10
+    timeout_ms: 5000
+    rate_limit: 0
+    enabled_by_default: false
+    zone: dbl.spamhaus.org
+    group: specialist
+    listed_verdict: suspicious
+    notes: "Domain block list â€” only meaningful for domains, not bare IPs."
+
+  # ===================================================================
+  # Â§9 / Â§8 â€” NETWORK, LEAK, SPEED (proxy mode)
+  # These are modules rather than providers; listed here so health and
+  # timeouts are configured in one place.
+  # ===================================================================
+  - id: network_probe
+    category: network
+    implemented: true
+    adapter_file: "network.rs"
+    status: "real"
+    upstream: local
+    method: local_db          # local OS probes (ping / tracert / PTR)
+    requires_key: false
+    weight_in_category: 1.0
+    timeout_ms: 8000
+    rate_limit: 0
+    enabled_by_default: true
+
+  - id: exit_ip
+    category: leak
+    implemented: true
+    adapter_file: "exit_ip.rs"
+    status: "real"
+    upstream: local
+    method: api
+    requires_key: false
+    weight_in_category: 0.50
+    timeout_ms: 8000
+    rate_limit: 0
+    enabled_by_default: true
+    notes: "Two echo endpoints (Â§8.1): httpbin.org/ip + ip.oxylabs.io"
+
+  - id: browser_leak
+    category: leak
+    implemented: true
+    adapter_file: "browser_leak.rs"
+    status: "real"
+    upstream: local
+    method: local_db          # Chromium headless against a bundled page (Â§8.2)
+    requires_key: false
+    weight_in_category: 0.50
+    timeout_ms: 8000
+    rate_limit: 0
+    enabled_by_default: true
+    notes: "Never scrapes whoer / browserleaks / ipleak / creepjs / bot.sannysoft (Â§5.4)."
+
+  - id: speed_test
+    category: speed
+    implemented: true
+    adapter_file: "speed.rs"
+    status: "real"
+    upstream: local
+    method: api
+    requires_key: false
+    weight_in_category: 1.0
+    timeout_ms: 8000
+    rate_limit: 0
+    enabled_by_default: true
+    notes: "Two CDN endpoints (Â§8.3); results are never cached (Â§10.2)."

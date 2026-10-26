@@ -1,0 +1,16 @@
+# Log redaction fixtures — spec §11 "log lỗi local, không log API key, không log credential proxy".
+# The harness feeds each line through the same scanner used on real log files.
+
+## MUST PASS (already redacted — a correct implementation looks like this)
+2026-10-25T11:30:00+07:00 INFO  provider=ipqualityscore ip=8.8.8.8 status=200 latency=311ms key=[REDACTED]
+2026-10-25T11:30:01+07:00 WARN  provider=abuseipdb ip=8.8.8.8 status=429 reason=quota_exhausted
+2026-10-25T11:30:02+07:00 ERROR proxy=socks5://45.155.205.1:8080 auth=[REDACTED] error=connect_timeout
+2026-10-25T11:30:03+07:00 INFO  dnsbl zone=zen.spamhaus.org listed=false
+2026-10-25T11:30:04+07:00 WARN  dnsbl zone=dnsbl.sorbs.net error=SERVFAIL action=disable_zone
+2026-10-25T11:30:05+07:00 INFO  geo_db name=GeoLite2-City version=2026.10.20 updated=2026-10-20 stale=false
+
+## MUST FAIL (leaky — any hit here means §13.10 is broken)
+2026-10-25T11:30:00+07:00 INFO  calling https://ipqualityscore.com/api/json/ip/IPQS_SENTINEL_KEY_9f3a2c7b1d/8.8.8.8
+2026-10-25T11:30:00+07:00 ERROR proxy=socks5://proxyuser_sentinel:S3cr3t-Pa55-SENTINEL-8b1f@45.155.205.1:8080
+2026-10-25T11:30:00+07:00 DEBUG headers=ApiKey: ABUSEIPDB_SENTINEL_KEY_4e8d1a6f0c
+2026-10-25T11:30:00+07:00 DEBUG config token=IPINFO_SENTINEL_TOKEN_7b2c9d4e5a

@@ -1,0 +1,116 @@
+[package]
+name = "ip-checker"
+version = "0.1.0"
+description = "IP Checker — multi-source IP reputation, triangulation and proxy leak check"
+authors = ["IP Checker"]
+edition = "2021"
+rust-version = "1.77"
+license = "MIT"
+publish = false
+# Two binaries exist (`ip-checker` and the QA-only `probe`), so `cargo tauri build`
+# cannot guess which one to bundle. `default-run` names the app binary; without it
+# the release build fails with "failed to find main binary".
+default-run = "ip-checker"
+
+[lib]
+# Tauri v2 layout: a library named `ip_checker_lib` plus a thin binary.
+name = "ip_checker_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+# QA-only headless bridge for the section 13.1 live test (owned by qa-verifier).
+# Not part of the shipped application: `cargo tauri build` bundles the binary
+# named by `default-run` above, so `probe` never reaches the installer.
+[[bin]]
+name = "probe"
+path = "src/bin/probe.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+# `protocol-asset` is required because tauri.conf.json enables
+# app.security.assetProtocol (the webview opens exported report files via
+# `asset:`). Tauri validates Cargo features against the config allowlist and
+# fails the build if they mismatch.
+tauri = { version = "2", features = ["protocol-asset"] }
+tauri-plugin-dialog = "2"
+
+# async runtime
+tokio = { version = "1", features = ["full"] }
+futures = "0.3"
+async-trait = "0.1"
+
+# sync primitives (shared by providers registry cache + circuit breaker)
+parking_lot = "0.12"
+once_cell = "1"
+
+# HTTP
+reqwest = { version = "0.12", default-features = false, features = [
+    "rustls-tls",
+    "json",
+    "socks",
+    "gzip",
+    "brotli",
+    "charset",
+    "http2",
+] }
+
+# serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"
+
+# time / ids / misc
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+rand = "0.8"
+regex = "1"
+anyhow = "1"
+thiserror = "1"
+
+# DNS (DNSBL + reverse DNS + Team Cymru)
+hickory-resolver = "0.24"
+
+# geo-deepseek (Phase 1b): local geo DB readers
+#   maxminddb  -> MaxMind GeoLite2 City/Country (.mmdb)
+#   csv        -> IP2Location LITE / DB-IP Lite CSV readers (geo_db.rs)
+#   ipnet      -> CIDR/prefix parsing for ASN prefix + cloud-range matching
+maxminddb = "0.24"
+csv = "1"
+ipnet = "2"
+
+# storage
+rusqlite = { version = "0.32", features = ["bundled"] }
+
+# secrets: Windows Credential Manager (never plaintext on disk)
+keyring = { version = "3", features = ["windows-native"] }
+
+# secrets hygiene for transient proxy credentials (proxy-opus, §8.4)
+zeroize = { version = "1", features = ["zeroize_derive"] }
+
+# paths + logging
+dirs = "5"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[features]
+# this feature is used for production builds or when a dev server is not specified
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }
+tempfile = "3"
+wiremock = "0.6"
+
+[profile.dev]
+# Keep debug builds small and fast; the app is I/O bound, not CPU bound.
+incremental = true
+codegen-units = 256
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true

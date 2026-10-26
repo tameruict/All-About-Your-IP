@@ -1,0 +1,21 @@
+{
+  "status": "success",
+  "country": "Netherlands",
+  "countryCode": "NL",
+  "region": "NH",
+  "regionName": "North Holland",
+  "city": "Amsterdam",
+  "zip": "1012",
+  "lat": 52.3740,
+  "lon": 4.8897,
+  "timezone": "Europe/Amsterdam",
+  "isp": "Datacamp Limited",
+  "org": "CDN77",
+  "as": "AS212238 Datacamp Limited",
+  "asname": "CDN77",
+  "reverse": "unn-185-244-1-1.cdn77.com",
+  "mobile": false,
+  "proxy": true,
+  "hosting": true,
+  "query": "185.244.1.1"
+}

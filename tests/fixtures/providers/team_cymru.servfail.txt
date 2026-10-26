@@ -1,0 +1,1 @@
+"_simulation: DNS SERVFAIL — zone/resolver failure. Harness must treat this as an error, NOT as not-listed."

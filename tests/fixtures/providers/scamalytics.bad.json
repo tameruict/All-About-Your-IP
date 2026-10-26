@@ -1,0 +1,19 @@
+{
+  "status": "ok",
+  "scamalytics_score": 78,
+  "scamalytics_risk": "high",
+  "ip": "45.155.205.1",
+  "isp": "Stark Industries Solutions Ltd",
+  "organization": "bulletproof-hosting",
+  "asn": 44477,
+  "country": "Russia",
+  "country_code": "RU",
+  "proxy": true,
+  "vpn": true,
+  "tor": true,
+  "server": true,
+  "anonymizing_vpn_network": true,
+  "blocklisted_ips": 37,
+  "last_seen": "2026-10-25",
+  "score_color": "red"
+}

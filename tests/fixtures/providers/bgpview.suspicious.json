@@ -1,0 +1,10 @@
+{
+  "status": "ok",
+  "data": {
+    "rir_allocation": { "rir_name": "RIPE", "country_code": "NL", "date_allocated": "2018-06-01", "allocation_status": "assigned" },
+    "prefixes": [
+      { "prefix": "185.244.1.0/24", "ip": "185.244.1.1", "cidr": 24, "asn": { "asn": 212238, "name": "DATACAMP", "country_code": "NL", "description": "Datacamp Limited", "website": "https://www.cdn77.com" } }
+    ],
+    "ip": "185.244.1.1"
+  }
+}

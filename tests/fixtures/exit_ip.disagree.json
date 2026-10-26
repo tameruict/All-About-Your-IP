@@ -1,0 +1,12 @@
+{
+  "$comment": "Rotating proxy: two endpoints report different exits -> exit_ip stays null, flag endpoints_disagree, do NOT pick the first.",
+  "reachable": true,
+  "endpoint_results": [
+    { "endpoint": "https://httpbin.org/ip",         "ok": true, "exit_ip": "185.244.1.1", "latency_ms": 402, "error": null },
+    { "endpoint": "https://ip.oxylabs.io/location", "ok": true, "exit_ip": "45.155.205.9", "latency_ms": 630, "error": null }
+  ],
+  "exit_ip": null,
+  "differs_from_input": false,
+  "endpoints_disagree": true,
+  "notes": ["Hai endpoint thấy 2 IP khác nhau — proxy xoay IP"]
+}

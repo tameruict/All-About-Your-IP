@@ -1,0 +1,19 @@
+{
+  "status": "ok",
+  "scamalytics_score": 41,
+  "scamalytics_risk": "medium",
+  "ip": "185.244.1.1",
+  "isp": "Datacamp Limited",
+  "organization": "CDN77",
+  "asn": 212238,
+  "country": "Netherlands",
+  "country_code": "NL",
+  "proxy": true,
+  "vpn": true,
+  "tor": false,
+  "server": true,
+  "anonymizing_vpn_network": true,
+  "blocklisted_ips": 2,
+  "last_seen": "2026-10-24",
+  "score_color": "orange"
+}

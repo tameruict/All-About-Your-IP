@@ -1,0 +1,12 @@
+{
+  "$comment": "§13.7 — typed IP 45.155.205.1, the proxy really exits from 185.244.1.1. Two endpoints must agree before exit_ip is committed.",
+  "reachable": true,
+  "endpoint_results": [
+    { "endpoint": "https://httpbin.org/ip",     "ok": true,  "exit_ip": "185.244.1.1", "latency_ms": 412, "error": null },
+    { "endpoint": "https://ip.oxylabs.io/location", "ok": true, "exit_ip": "185.244.1.1", "latency_ms": 508, "error": null }
+  ],
+  "exit_ip": "185.244.1.1",
+  "differs_from_input": true,
+  "endpoints_disagree": false,
+  "notes": ["IP thoát thực tế khác IP bạn nhập — cờ đỏ", "Verdict được chấm trên IP thoát, không phải IP nhập"]
+}

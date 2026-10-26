@@ -1,0 +1,263 @@
+{
+  "$comment": "GOLDEN shape sample for §10.3 / §6.6. The harness validates that a real export_report('json') output contains all of these keys with the same types. This file itself contains NO secrets (that is asserted by §13.10).",
+  "check_id": "chk-fixture-0001",
+  "id": "chk-fixture-0001",
+  "ip": "8.8.8.8",
+  "mode": "ip_only",
+  "clean_score": 82,
+  "confidence_score": 91,
+  "verdict": "Tạm",
+  "verdict_reason": "Dính 1 DNSBL cộng đồng, các nguồn fraud còn lại sạch",
+  "checked_at": "2026-10-25T11:30:00+07:00",
+  "from_cache": false,
+  "is_private": false,
+  "validation_error": null,
+  "ip_version": 4,
+  "duration_ms": 8421,
+  "app_version": "0.1.0",
+  "evidence": [
+    {
+      "provider": "ipqualityscore",
+      "category": "fraud",
+      "upstream": "ipqualityscore",
+      "signal": "Clean",
+      "raw_score": 12,
+      "raw": { "fraud_score": 12, "proxy": false, "vpn": false, "recent_abuse": false },
+      "checked_at": "2026-10-25T11:30:00+07:00",
+      "source_url": "https://www.ipqualityscore.com/",
+      "latency_ms": 311,
+      "error": null,
+      "reason": "fraud_score 12 < 25",
+      "from_cache": false
+    },
+    {
+      "provider": "proxycheck",
+      "category": "fraud",
+      "upstream": "proxycheck",
+      "signal": "Clean",
+      "raw_score": 0,
+      "raw": { "proxy": "no", "type": "Business", "risk": 0 },
+      "checked_at": "2026-10-25T11:30:00+07:00",
+      "source_url": "https://proxycheck.io/",
+      "latency_ms": 402,
+      "error": null,
+      "reason": "risk 0",
+      "from_cache": false
+    },
+    {
+      "provider": "abuseipdb",
+      "category": "abuse",
+      "upstream": "abuseipdb",
+      "signal": "Clean",
+      "raw_score": 0,
+      "raw": { "abuseConfidenceScore": 0, "totalReports": 0, "numDistinctUsers": 0 },
+      "checked_at": "2026-10-25T11:30:00+07:00",
+      "source_url": "https://www.abuseipdb.com/check/8.8.8.8",
+      "latency_ms": 268,
+      "error": null,
+      "reason": "abuseConfidenceScore 0 < 10",
+      "from_cache": false
+    },
+    {
+      "provider": "spamhaus_zen",
+      "category": "blacklist",
+      "upstream": "spamhaus",
+      "signal": "Clean",
+      "raw_score": null,
+      "raw": { "zone": "zen.spamhaus.org", "listed": false },
+      "checked_at": "2026-10-25T11:30:00+07:00",
+      "source_url": "https://check.spamhaus.org/",
+      "latency_ms": 44,
+      "error": null,
+      "reason": "không nằm trong danh sách",
+      "from_cache": false
+    },
+    {
+      "provider": "spamcop",
+      "category": "blacklist",
+      "upstream": "spamcop",
+      "signal": "Unknown",
+      "raw_score": null,
+      "raw": { "zone": "bl.spamcop.net", "listed": true, "codes": ["127.0.0.2"] },
+      "checked_at": "2026-10-25T11:30:00+07:00",
+      "source_url": "https://www.spamcop.net/bl.shtml",
+      "latency_ms": 51,
+      "error": null,
+      "reason": "listed 127.0.0.2",
+      "from_cache": false
+    },
+    {
+      "provider": "ipinfo",
+      "category": "geo",
+      "upstream": "ipinfo",
+      "signal": "Clean",
+      "raw_score": null,
+      "raw": { "country": "SG", "city": "Singapore", "org": "AS15169 Google LLC" },
+      "checked_at": "2026-10-25T11:30:00+07:00",
+      "source_url": "https://ipinfo.io/8.8.8.8",
+      "latency_ms": 190,
+      "error": { "kind": "quota", "message": "hết quota free", "status": 429, "retryable": false },
+      "reason": null,
+      "from_cache": false
+    }
+  ],
+  "proxy_host": null,
+  "proxy_port": null,
+  "proxy_protocol": null,
+  "location": {
+    "country": "Singapore",
+    "country_code": "SG",
+    "country_confidence": 95,
+    "city": "Singapore",
+    "region": "Central Singapore",
+    "centroid_latitude": 1.2868,
+    "centroid_longitude": 103.8503,
+    "radius_km": 12,
+    "spread": "high",
+    "big_divergence": false,
+    "changed_since_last_check": false,
+    "previous_country": null,
+    "previous_city": null,
+    "notes": ["3/3 nguồn đồng ý Singapore", "Bán kính lệch 12 km — tin cậy cao"],
+    "points": [
+      {
+        "source": "ip-api",
+        "source_kind": "api",
+        "country": "Singapore",
+        "country_code": "SG",
+        "region": "Central Singapore",
+        "city": "Singapore",
+        "postal": "018989",
+        "latitude": 1.2868,
+        "longitude": 103.8503,
+        "timezone": "Asia/Singapore",
+        "accuracy_radius_km": 20,
+        "db_version": null,
+        "db_updated_at": null,
+        "distance_from_centroid_km": 0,
+        "over_precise": false
+      },
+      {
+        "source": "ipwho",
+        "source_kind": "api",
+        "country": "Singapore",
+        "country_code": "SG",
+        "region": "Central Singapore",
+        "city": "Singapore",
+        "postal": "018989",
+        "latitude": 1.2868,
+        "longitude": 103.8503,
+        "timezone": "Asia/Singapore",
+        "accuracy_radius_km": null,
+        "db_version": null,
+        "db_updated_at": null,
+        "distance_from_centroid_km": 0,
+        "over_precise": false
+      }
+    ]
+  },
+  "asn": {
+    "asn": 15169,
+    "asn_name": "GOOGLE",
+    "organisation": "Google LLC",
+    "prefix": "8.8.8.0/24",
+    "isp": "Google LLC",
+    "rir_country": "US",
+    "consensus": true,
+    "country_mismatch": true,
+    "ip_type": "datacenter",
+    "flags": { "hosting": true, "proxy": false, "vpn": false, "tor": false, "mobile": false, "anycast": true },
+    "records": [
+      { "source": "ripestat", "asn": 15169, "asn_name": "GOOGLE", "organisation": "Google LLC", "prefix": "8.8.8.0/24", "rir_country": "US", "registry": "arin", "note": null },
+      { "source": "bgpview", "asn": 15169, "asn_name": "GOOGLE", "organisation": "Google LLC", "prefix": "8.8.8.0/24", "rir_country": "US", "registry": "arin", "note": null },
+      { "source": "team_cymru", "asn": 15169, "asn_name": "GOOGLE", "organisation": null, "prefix": "8.8.8.0/24", "rir_country": "US", "registry": "arin", "note": "DNS TXT" }
+    ]
+  },
+  "dnsbl": {
+    "total_listed": 1,
+    "groups_answered": 4,
+    "hard_hit": false,
+    "notes": ["1 list cộng đồng báo listed"],
+    "groups": [
+      {
+        "group": "spamhaus",
+        "label": "Spamhaus",
+        "checked": 1,
+        "listed": 0,
+        "signal": "Clean",
+        "answered": true,
+        "entries": [
+          { "provider": "spamhaus_zen", "zone": "zen.spamhaus.org", "group": "spamhaus", "listed": false, "return_codes": [], "signal": "Clean", "listed_verdict": "bad", "reason": null, "source_url": "https://check.spamhaus.org/", "checked_at": "2026-10-25T11:30:00+07:00", "error": null }
+        ]
+      },
+      {
+        "group": "community",
+        "label": "Cộng đồng",
+        "checked": 3,
+        "listed": 1,
+        "signal": "Suspicious",
+        "answered": true,
+        "entries": [
+          { "provider": "spamcop", "zone": "bl.spamcop.net", "group": "community", "listed": true, "return_codes": ["127.0.0.2"], "signal": "Suspicious", "listed_verdict": "suspicious", "reason": "SCBL listed", "source_url": "https://www.spamcop.net/bl.shtml", "checked_at": "2026-10-25T11:30:00+07:00", "error": null },
+          { "provider": "sorbs", "zone": "dnsbl.sorbs.net", "group": "community", "listed": false, "return_codes": [], "signal": "Clean", "listed_verdict": "suspicious", "reason": null, "source_url": "http://www.sorbs.net/", "checked_at": "2026-10-25T11:30:00+07:00", "error": null },
+          { "provider": "uceprotect", "zone": "dnsbl-1.uceprotect.net", "group": "community", "listed": false, "return_codes": [], "signal": "Clean", "listed_verdict": "suspicious", "reason": null, "source_url": "https://www.uceprotect.net/", "checked_at": "2026-10-25T11:30:00+07:00", "error": null }
+        ]
+      }
+    ]
+  },
+  "network": {
+    "ping_method": "tcp_443",
+    "latency_avg_ms": 24.5,
+    "latency_min_ms": 22.1,
+    "latency_max_ms": 28.0,
+    "jitter_ms": 2.4,
+    "packets_sent": 5,
+    "packets_received": 5,
+    "packet_loss_pct": 0,
+    "reverse_dns": "dns.google",
+    "reverse_dns_matches_isp": true,
+    "ttl": 117,
+    "os_guess": "Linux (suy đoán sơ từ TTL)",
+    "traceroute_hops": [
+      { "hop": 1, "address": "192.168.1.1", "hostname": null, "rtt_ms": 1.2, "is_international": false },
+      { "hop": 9, "address": "8.8.8.8", "hostname": "dns.google", "rtt_ms": 24.5, "is_international": false }
+    ],
+    "notes": ["ICMP bị chặn, dùng TCP ping 443"]
+  },
+  "exit_ip": null,
+  "leak": null,
+  "speed": null,
+  "scoring": {
+    "clean_score": 82,
+    "confidence_score": 91,
+    "verdict": "Tạm",
+    "verdict_reason": "Dính 1 DNSBL cộng đồng, các nguồn fraud còn lại sạch",
+    "single_source_evidence": false,
+    "notes": ["Spamhaus sạch, 1 list cộng đồng báo listed"],
+    "breakdown": [
+      { "aspect": "fraud", "weight": 0.35, "aspect_score": 96, "weighted": 33.6, "votes": 2, "quorum_met": true, "note": "IPQS 12 + ProxyCheck 0, cùng Clean" },
+      { "aspect": "blacklist", "weight": 0.25, "aspect_score": 78, "weighted": 19.5, "votes": 4, "quorum_met": true, "note": "1/4 nhóm list có hit cộng đồng" },
+      { "aspect": "asn", "weight": 0.2, "aspect_score": 80, "weighted": 16.0, "votes": 3, "quorum_met": true, "note": "3 nguồn đồng ý AS15169" },
+      { "aspect": "abuse", "weight": 0.1, "aspect_score": 100, "weighted": 10.0, "votes": 1, "quorum_met": true, "note": "0 report 90 ngày" },
+      { "aspect": "consistency", "weight": 0.1, "aspect_score": 30, "weighted": 3.0, "votes": 3, "quorum_met": true, "note": "geo SG vs RIR US, anycast" }
+    ],
+    "conflicts": [
+      { "severity": "soft", "aspect": "blacklist", "dissenting": ["spamcop"], "agreeing": ["spamhaus_zen", "sorbs", "uceprotect"], "message": "1 list cộng đồng báo listed, các list còn lại sạch" }
+    ],
+    "quorum": [
+      { "aspect": "fraud", "required": 2, "actual": 2, "met": true, "missing": [] },
+      { "aspect": "blacklist", "required": 3, "actual": 4, "met": true, "missing": [] },
+      { "aspect": "geo_asn", "required": 2, "actual": 3, "met": true, "missing": [] }
+    ]
+  },
+  "provider_health": [
+    { "provider": "ipqualityscore", "category": "fraud", "upstream": "ipqualityscore", "state": "green", "success_rate": 98, "latency_avg_ms": 311, "last_error_at": null, "last_error": null, "consecutive_failures": 0, "circuit_open": false, "circuit_open_until": null, "effective_weight": 1, "configured_weight": 1, "requires_key": true, "has_key": true, "enabled": true, "quota_exhausted": false, "quota_reset_at": null, "db_version": null, "db_updated_at": null, "total_checks": 12 }
+  ],
+  "geo_db_versions": [
+    { "db_name": "GeoLite2-City", "version": "2026.10.20", "updated_at": "2026-10-20", "stale": false }
+  ],
+  "modules": [
+    { "module": "validate", "status": "done", "progress": 100, "started_at": "2026-10-25T11:30:00+07:00", "finished_at": "2026-10-25T11:30:00+07:00", "providers_done": 1, "providers_total": 1, "skip_reason": null, "message": "IP hợp lệ", "error": null },
+    { "module": "leak", "status": "skipped", "progress": 0, "started_at": null, "finished_at": null, "providers_done": 0, "providers_total": 1, "skip_reason": "requires_proxy", "message": "Chưa đo được — cần nhập proxy", "error": null }
+  ]
+}

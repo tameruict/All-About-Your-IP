@@ -1,0 +1,64 @@
+# Dependencies
+node_modules/
+
+# Production build outputs
+dist/
+dist-ssr/
+*.local
+
+# Tauri / Rust build targets
+target/
+src-tauri/target/
+.cargo/
+src-tauri/.cargo/
+
+# Executables and release artifacts (distributed via GitHub Releases)
+*.exe
+*.dll
+*.dylib
+*.so
+*.pdb
+*.msi
+*.deb
+*.appimage
+release/
+release-dist/
+
+# SQLite databases & runtime data
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Environment files & Secrets (API keys, certificates, credentials)
+.env
+.env.*
+*.env
+*.key
+*.pem
+*.secret
+*.token
+*.pfx
+*.p12
+*.cert
+credentials.json
+
+# Logs, test outputs & scratch artifacts
+*.log
+_last-run*.txt
+*-report.json
+build-artifacts.json
+smoke-last.json
+spec13-report.json
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.suo
+*.user
+*.swp
+*~

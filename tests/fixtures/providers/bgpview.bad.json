@@ -1,0 +1,10 @@
+{
+  "status": "ok",
+  "data": {
+    "rir_allocation": { "rir_name": "RIPE", "country_code": "MD", "date_allocated": "2021-11-02", "allocation_status": "assigned" },
+    "prefixes": [
+      { "prefix": "45.155.204.0/22", "ip": "45.155.205.1", "cidr": 22, "asn": { "asn": 44477, "name": "STARK-INDUSTRIES-SOLUTIONS-LTD", "country_code": "MD", "description": "Stark Industries Solutions Ltd", "website": "" } }
+    ],
+    "ip": "45.155.205.1"
+  }
+}

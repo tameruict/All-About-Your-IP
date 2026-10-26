@@ -1,0 +1,12 @@
+# Mock: only the community group is listed (bl.spamcop.net -> 127.0.0.2)
+group=community
+listed_zones:
+  - bl.spamcop.net -> 127.0.0.2
+  - dnsbl-1.uceprotect.net -> NXDOMAIN
+  - dnsbl.sorbs.net -> NXDOMAIN
+not_listed_zones:
+  - zen.spamhaus.org
+  - b.barracudacentral.org
+  - torexit.dan.me.uk
+expect_verdict_in: ["Tạm", "Nghi ngờ"]
+expect_reason_contains: "1 DNSBL cộng đồng"

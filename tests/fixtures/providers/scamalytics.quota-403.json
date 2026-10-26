@@ -1,0 +1,5 @@
+{
+  "status": "error",
+  "error": "quota_exceeded",
+  "message": "API credit limit reached for this account."
+}

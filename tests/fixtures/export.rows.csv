@@ -1,0 +1,4 @@
+ip,verdict,clean_score,confidence,country,city,asn,isp,ip_type,fraud signals,blacklist listed count,checked_at
+8.8.8.8,Tạm,82,91,Singapore,Singapore,15169,Google LLC,datacenter,IPQS=12;ProxyCheck=0,1,2026-10-25T11:30:00+07:00
+1.1.1.1,Sạch,94,88,United States,San Francisco,13335,Cloudflare Inc,datacenter,IPQS=4;ProxyCheck=0,0,2026-10-25T11:32:00+07:00
+45.155.205.1,Bẩn,12,84,Russia,Moscow,44477,Stark Industries Solutions Ltd,vpn,IPQS=89;ProxyCheck=91,7,2026-10-25T11:35:00+07:00

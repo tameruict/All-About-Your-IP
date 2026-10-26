@@ -1,0 +1,65 @@
+{
+  "$comment": "Input-level fixtures for §13.1–§13.3 (public / private / invalid) plus IPv6. Consumed by tests/harness/spec13.test.mjs. `expect` fields are the assertions — the harness fails loudly when a value drifts.",
+  "schema_version": 1,
+  "public_ips": {
+    "$comment": "§13.1 — must return a verdict + geo + ASN, must not crash. Requires live network.",
+    "cases": [
+      { "ip": "8.8.8.8",      "expect": { "verdict_in": ["Sạch", "Tạm", "Nghi ngờ", "Bẩn", "Chưa đủ dữ liệu"], "has_geo": true, "has_asn": true, "asn": 15169, "country_code": "US" } },
+      { "ip": "1.1.1.1",      "expect": { "verdict_in": ["Sạch", "Tạm", "Nghi ngờ", "Bẩn", "Chưa đủ dữ liệu"], "has_geo": true, "has_asn": true, "asn": 13335, "country_code": "AU" } },
+      { "ip": "2001:4860:4860::8888", "expect": { "verdict_in": ["Sạch", "Tạm", "Nghi ngờ", "Bẩn", "Chưa đủ dữ liệu"], "ip_version": 6, "note": "IPv6 support is part of §1.2" }, "network": "optional" }
+    ]
+  },
+  "private_ips": {
+    "$comment": "§13.2 — stop early, explain, DO NOT call any API.",
+    "cases": [
+      { "ip": "192.168.1.1", "reason": "RFC1918 private",          "expect": { "is_private": true, "api_calls": 0, "error_kind": "private_ip", "has_banner": true, "clean_score": null, "verdict": null } },
+      { "ip": "10.0.0.1",    "reason": "RFC1918 private",          "expect": { "is_private": true, "api_calls": 0, "error_kind": "private_ip" } },
+      { "ip": "172.16.0.1",  "reason": "RFC1918 private",          "expect": { "is_private": true, "api_calls": 0 } },
+      { "ip": "127.0.0.1",   "reason": "loopback",                 "expect": { "is_private": true, "api_calls": 0 } },
+      { "ip": "169.254.1.1",  "reason": "link-local",              "expect": { "is_private": true, "api_calls": 0 } },
+      { "ip": "100.64.0.1",  "reason": "CGNAT (RFC6598)",          "expect": { "is_private": true, "api_calls": 0 } },
+      { "ip": "0.0.0.0",     "reason": "this-network / unspecified","expect": { "is_private": true, "api_calls": 0 } },
+      { "ip": "224.0.0.1",   "reason": "multicast",                "expect": { "is_private": true, "api_calls": 0 } },
+      { "ip": "255.255.255.255", "reason": "broadcast",            "expect": { "is_private": true, "api_calls": 0 } },
+      { "ip": "::1",         "reason": "IPv6 loopback",            "expect": { "is_private": true, "api_calls": 0 } },
+      { "ip": "fe80::1",     "reason": "IPv6 link-local",          "expect": { "is_private": true, "api_calls": 0 } },
+      { "ip": "fd00::1",     "reason": "IPv6 ULA",                 "expect": { "is_private": true, "api_calls": 0 } }
+    ]
+  },
+  "invalid_inputs": {
+    "$comment": "§13.3 — error immediately, Scan button disabled. No process spawn, no API call.",
+    "cases": [
+      { "input": "999.999.999.999", "expect": { "error_immediately": true, "error_kind": "invalid_input", "scan_disabled": true } },
+      { "input": "abc",             "expect": { "error_immediately": true, "error_kind": "invalid_input", "scan_disabled": true } },
+      { "input": "",                "expect": { "error_immediately": true, "scan_disabled": true } },
+      { "input": "1.2.3",           "expect": { "error_immediately": true, "scan_disabled": true } },
+      { "input": "1.2.3.4.5",       "expect": { "error_immediately": true, "scan_disabled": true } },
+      { "input": "256.1.1.1",       "expect": { "error_immediately": true, "scan_disabled": true } },
+      { "input": "1.2.3.4:99999",   "expect": { "error_immediately": true, "scan_disabled": true, "reason": "port out of range 1-65535" } },
+      { "input": "1.2.3.4:0",       "expect": { "error_immediately": true, "scan_disabled": true } },
+      { "input": "1.2.3.4:abc",     "expect": { "error_immediately": true, "scan_disabled": true } },
+      { "input": "http://1.2.3.4",  "expect": { "error_immediately": true, "scan_disabled": true, "reason": "scheme not accepted in the IP field" } },
+      { "input": "1.2.3.4 ",        "expect": { "trimmed_ok": true, "note": "surrounding whitespace is tolerated" } },
+      { "input": "<script>alert(1)</script>", "expect": { "error_immediately": true, "no_html_injection": true } }
+    ]
+  },
+  "mode_detection": {
+    "$comment": "§1.2 / §3.3 — auto-detect ip_only vs proxy from the presence of :port.",
+    "cases": [
+      { "input": "8.8.8.8",                 "expect": { "mode": "ip_only" } },
+      { "input": "8.8.8.8:8080",            "expect": { "mode": "proxy", "proxy_port": 8080 } },
+      { "input": "8.8.8.8:1080",            "expect": { "mode": "proxy", "protocol_default": "http" } },
+      { "input": "[2001:4860:4860::8888]:8080", "expect": { "mode": "proxy", "note": "bracketed IPv6 with port must not be split on the :: colons" } },
+      { "input": "2001:4860:4860::8888",    "expect": { "mode": "ip_only" } }
+    ]
+  },
+  "ip_only_leak_speed_rule": {
+    "$comment": "§1.2 + §3.3 — in ip_only mode the Leak/Speed cards MUST show the exact Vietnamese string, never 0 and never a fabricated number.",
+    "expect": {
+      "leak_measured": false,
+      "speed_measured": false,
+      "display_text": "Chưa đo được — cần nhập proxy",
+      "forbidden": ["0", "0 Mbps", "0 ms", "null Mbps", "-"]
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "$comment": "Must surface an error and null numbers — the UI shows 'Chưa đo được', never 0.",
+  "measured": false,
+  "endpoints": [
+    { "endpoint": "https://speed.cloudflare.com/__down?bytes=5000000", "ok": false, "download_mbps": null, "latency_ms": null, "jitter_ms": null, "bytes": null, "duration_ms": null, "error": "connection reset" },
+    { "endpoint": "https://proof.ovh.net/files/1Mb.dat",                "ok": false, "download_mbps": null, "latency_ms": null, "jitter_ms": null, "bytes": null, "duration_ms": null, "error": "timeout after 15000 ms" }
+  ],
+  "download_mbps": null,
+  "latency_ms": null,
+  "jitter_ms": null,
+  "upload_mbps": null,
+  "measured_at": null,
+  "notes": ["Không đo được tốc độ qua proxy này"],
+  "error": { "kind": "network", "message": "all speed endpoints failed", "retryable": true }
+}

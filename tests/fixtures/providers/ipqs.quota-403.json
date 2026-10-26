@@ -1,0 +1,6 @@
+{
+  "success": false,
+  "message": "You have exceeded the monthly quota for this API key. Upgrade your plan or wait for the quota to reset.",
+  "fraud_score": 0,
+  "request_id": "mock-0004"
+}

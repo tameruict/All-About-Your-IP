@@ -1,0 +1,10 @@
+{
+  "status": "ok",
+  "data": {
+    "rir_allocation": { "rir_name": "ARIN", "country_code": "US", "date_allocated": "2014-03-14", "allocation_status": "assigned" },
+    "prefixes": [
+      { "prefix": "8.8.8.0/24", "ip": "8.8.8.8", "cidr": 24, "asn": { "asn": 15169, "name": "GOOGLE", "country_code": "US", "description": "Google LLC", "website": "https://about.google" } }
+    ],
+    "ip": "8.8.8.8"
+  }
+}

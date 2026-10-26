@@ -1,0 +1,21 @@
+{
+  "status": "ok",
+  "45.155.205.1": {
+    "asn": "AS44477",
+    "range": "45.155.204.0/22",
+    "hostname": "spam-relay-01.badhost.example",
+    "provider": "Stark Industries Solutions Ltd",
+    "continent": "Europe",
+    "country": "Russia",
+    "isocode": "RU",
+    "region": "Moscow",
+    "city": "Moscow",
+    "timezone": "Europe/Moscow",
+    "latitude": 55.7558,
+    "longitude": 37.6173,
+    "proxy": "yes",
+    "type": "VPN",
+    "risk": 91
+  },
+  "query_time": 25
+}

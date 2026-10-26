@@ -1,0 +1,3 @@
+{
+  "errors": [ { "detail": "Authentication failed. Your API key is missing or invalid.", "status": 401 } ]
+}

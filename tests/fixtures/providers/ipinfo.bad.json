@@ -1,0 +1,6 @@
+{
+  "ip": "45.155.205.1", "hostname": "spam-relay-01.badhost.example",
+  "city": "Moscow", "region": "Moscow", "country": "RU", "loc": "55.7558,37.6173",
+  "org": "AS44477 Stark Industries Solutions Ltd", "postal": "101000", "timezone": "Europe/Moscow",
+  "privacy": { "vpn": true, "proxy": true, "tor": true, "relay": false, "hosting": true, "service": "Tor/VPN host" }
+}

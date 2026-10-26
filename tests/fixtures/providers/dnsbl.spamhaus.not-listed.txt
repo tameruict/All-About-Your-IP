@@ -1,0 +1,2 @@
+# NXDOMAIN — 8.8.8.8 not listed in zen.spamhaus.org
+answer=NXDOMAIN

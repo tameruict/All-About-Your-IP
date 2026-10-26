@@ -1,0 +1,6 @@
+{
+  "status": "error",
+  "status_code": 429,
+  "error": "Too many requests. Please slow down.",
+  "see_also": []
+}

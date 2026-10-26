@@ -1,0 +1,109 @@
+{
+  "$comment": "Cache / history / export fixtures — spec §10.2 (TTL + stale timestamp display), §10.3 (export columns), §13.9, §13.10. A fake-but-realistic credential set is embedded so the harness can assert these strings NEVER appear in any export or log.",
+  "schema_version": 1,
+
+  "secrets_that_must_never_leak": {
+    "$comment": "Sentinel values. tests/harness scans every produced file + every captured log line for these exact substrings. Any hit = §13.10 FAIL.",
+    "api_keys": [
+      "IPQS_SENTINEL_KEY_9f3a2c7b1d",
+      "ABUSEIPDB_SENTINEL_KEY_4e8d1a6f0c",
+      "IPINFO_SENTINEL_TOKEN_7b2c9d4e5a",
+      "SCAMALYTICS_SENTINEL_KEY_1c7f3e9b2d",
+      "GREYNOISE_SENTINEL_KEY_6a2b8f4c0d"
+    ],
+    "proxy_credentials": [
+      { "username": "proxyuser_sentinel", "password": "S3cr3t-Pa55-SENTINEL-8b1f" }
+    ],
+    "also_forbidden_substrings": ["password", "passwd", "credential", "authorization: basic", "Bearer ", "api_key=", "apiKey=", "token="],
+    "$note": "`also_forbidden_substrings` applies to exported history/JSON/CSV and to log files, NOT to the app's own settings schema field names like `has_key`."
+  },
+
+  "cache_ttl": {
+    "$comment": "§10.2 — geo 7d, reputation/fraud 24h, blacklist 6–12h, abuse 24h, leak/speed never cached.",
+    "expect": {
+      "geo_hours": 168,
+      "fraud_hours": 24,
+      "blacklist_hours": 12,
+      "abuse_hours": 24,
+      "leak_and_speed_cached": false
+    }
+  },
+
+  "cache_reuse_case": {
+    "$comment": "§13.9 — checking the same IP again inside the TTL must load from cache and carry the ORIGINAL timestamp; pressing 'Check lại' must ignore cache.",
+    "ip": "8.8.8.8",
+    "first_check": { "check_id": "chk-fixture-0001", "checked_at": "2026-10-25T09:00:00+07:00", "clean_score": 88, "verdict": "Sạch" },
+    "second_check_same_ip_with_cache": {
+      "expect": {
+        "from_cache": true,
+        "checked_at": "2026-10-25T09:00:00+07:00",
+        "display_format": "từ cache, check lúc 09:00 25/10",
+        "must_not_show_new_timestamp": true
+      }
+    },
+    "recheck_forced": {
+      "options": { "use_cache": false },
+      "expect": { "from_cache": false, "checked_at_not_equal": "2026-10-25T09:00:00+07:00", "live_requests_made": true }
+    },
+    "expired": {
+      "checked_at": "2026-10-18T09:00:00+07:00",
+      "expect": { "from_cache": false, "reason": "geo TTL 7 days exceeded" }
+    },
+    "history_detail": {
+      "expect": {
+        "get_history_returns_row": true,
+        "get_check_detail_returns_full_result": true,
+        "per_evidence_from_cache_flag_matches": true
+      }
+    }
+  },
+
+  "export_json": {
+    "$comment": "§10.3 + §6.6 — every required field must be present in the JSON export.",
+    "required_top_level": [
+      "ip", "mode", "clean_score", "confidence_score", "verdict", "verdict_reason", "evidence", "checked_at"
+    ],
+    "required_evidence_fields": [
+      "provider", "category", "upstream", "signal", "raw_score", "checked_at", "source_url"
+    ],
+    "required_extras_by_module": {
+      "location": ["country", "city", "points", "centroid_latitude", "centroid_longitude", "radius_km", "spread", "notes"],
+      "asn": ["asn", "asn_name", "prefix", "rir_country", "consensus", "ip_type", "flags"],
+      "dnsbl": ["groups", "total_listed", "groups_answered", "hard_hit", "notes"],
+      "network": ["ping_method", "latency_avg_ms", "reverse_dns", "traceroute_hops"],
+      "geo_db_versions": ["db_name", "version", "updated_at", "stale"],
+      "scoring": ["breakdown", "conflicts", "quorum", "verdict_reason"]
+    },
+    "signal_values_allowed": ["Clean", "Suspicious", "Bad", "Unknown"],
+    "verdict_values_allowed": ["Sạch", "Tạm", "Nghi ngờ", "Bẩn", "Chưa đủ dữ liệu"],
+    "mode_values_allowed": ["ip_only", "proxy", "unknown"]
+  },
+
+  "export_csv": {
+    "$comment": "§10.3 — one row per IP, these columns, in this order.",
+    "columns": [
+      "ip", "verdict", "clean_score", "confidence", "country", "city", "asn", "isp", "ip_type",
+      "fraud signals", "blacklist listed count", "checked_at"
+    ],
+    "expect": {
+      "header_row_exact": true,
+      "row_count_equals_check_count": true,
+      "utf8_no_bom_required_for_vietnamese_verdict": false,
+      "note": "Verdict is Vietnamese — the CSV must be UTF-8 so 'Nghi ngờ'/'Bẩn' stay readable in Excel."
+    }
+  },
+
+  "copy_summary_text": {
+    "$comment": "§10.3 — short paste-into-chat report.",
+    "must_contain": ["verdict", "clean score", "confidence", "country", "city", "ASN", "lý do", "link"],
+    "max_lines": 12,
+    "must_not_contain": ["password", "api_key", "token"]
+  },
+
+  "fixture_exports": {
+    "$comment": "Golden files used by the harness to validate shape. They intentionally include a proxy check + a cache-hit check.",
+    "valid_json": "export.full-result.json",
+    "valid_csv": "export.rows.csv",
+    "leaky_json_bad_example": "export.leaky.result.json"
+  }
+}

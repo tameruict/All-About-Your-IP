@@ -1,0 +1,16 @@
+{
+  "status": "ok",
+  "status_code": 200,
+  "data": {
+    "resource": "45.155.204.0/22",
+    "asns": [ { "asn": 44477, "holder": "STARK-INDUSTRIES, MD", "announced": true } ],
+    "prefix": "45.155.204.0/22",
+    "block": "45.155.204.0/22",
+    "name": "STARK-INDUSTRIES-SOLUTIONS-LTD",
+    "shortname": "STARK-INDUSTRIES",
+    "is_announced": true,
+    "category": "cidr_root",
+    "irr_sources": ["RIPE"]
+  },
+  "see_also": []
+}

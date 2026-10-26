@@ -1,0 +1,21 @@
+{
+  "status": "success",
+  "country": "Singapore",
+  "countryCode": "SG",
+  "region": "01",
+  "regionName": "Central Singapore",
+  "city": "Singapore",
+  "zip": "018989",
+  "lat": 1.2868,
+  "lon": 103.8503,
+  "timezone": "Asia/Singapore",
+  "isp": "Singtel Fibre Broadband",
+  "org": "Singtel",
+  "as": "AS9506 Singtel Fibre Broadband",
+  "asname": "SINGTEL-FIBRE",
+  "reverse": "bb-45-155-205-1.singnet.com.sg",
+  "mobile": false,
+  "proxy": false,
+  "hosting": false,
+  "query": "45.155.205.1"
+}

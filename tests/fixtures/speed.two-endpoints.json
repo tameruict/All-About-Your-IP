@@ -1,0 +1,13 @@
+{
+  "measured": true,
+  "endpoints": [
+    { "endpoint": "https://speed.cloudflare.com/__down?bytes=5000000", "ok": true, "download_mbps": 42.7, "latency_ms": 38, "jitter_ms": 4.1, "bytes": 5000000, "duration_ms": 936, "error": null },
+    { "endpoint": "https://proof.ovh.net/files/1Mb.dat",                "ok": true, "download_mbps": 31.2, "latency_ms": 52, "jitter_ms": 6.8, "bytes": 1048576, "duration_ms": 269, "error": null }
+  ],
+  "download_mbps": 42.7,
+  "latency_ms": 38,
+  "jitter_ms": 4.1,
+  "upload_mbps": null,
+  "measured_at": "2026-10-25T12:12:00+07:00",
+  "notes": ["Tốc độ phụ thuộc server đích và giờ đo — chỉ so sánh tương đối trong cùng 1 lần test"]
+}

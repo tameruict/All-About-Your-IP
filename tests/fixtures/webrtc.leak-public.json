@@ -1,0 +1,14 @@
+{
+  "measured": true,
+  "webrtc_leak": true,
+  "webrtc_candidates": ["203.0.113.77"],
+  "dns_leak": null,
+  "dns_method": "unknown",
+  "browser_timezone": "Europe/Amsterdam",
+  "ip_timezone": "Europe/Amsterdam",
+  "timezone_mismatch": false,
+  "headless_flags": [],
+  "ja3": null,
+  "downgrade": true,
+  "notes": ["WebRTC rò IP công khai 203.0.113.77 (khác IP thoát proxy)"]
+}

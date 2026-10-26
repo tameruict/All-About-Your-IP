@@ -1,0 +1,99 @@
+/*
+ * IP Checker — design tokens.
+ * Values are copied VERBATIM from spec §3.1 "Design tokens (bắt buộc)".
+ * Nothing in the app may hard-code a colour: every component reads these
+ * custom properties. If a shade is missing, add a derived token here.
+ */
+
+:root {
+  /* ---- surfaces (§3.1) ---- */
+  --bg: #050810; /* near-black with a blue cast */
+  --panel: #0a0f1e;
+  --border: #1b2a4a;
+
+  /* ---- text (§3.1) ---- */
+  --text: #e6f1ff; /* primary */
+  --muted: #8b9bb4; /* secondary */
+
+  /* ---- neon accent (§3.1) ---- */
+  --cyan: #00f0ff; /* live data / scanning */
+
+  /* ---- verdict states (§3.1) ---- */
+  --state-clean: #22c55e; /* Sạch */
+  --state-temp: #eab308; /* Tạm */
+  --state-suspect: #f97316; /* Nghi ngờ */
+  --state-bad: #ef4444; /* Bẩn */
+  --state-unknown: #94a3b8; /* Chưa đủ dữ liệu */
+
+  /* ---- conflict warning (§3.1) ---- */
+  --conflict: #ff2d78; /* magenta */
+
+  /* ---- typography (§3.1) ---- */
+  --font-mono: "JetBrains Mono", "IBM Plex Mono", Consolas, monospace;
+  --font-ui: "IBM Plex Mono", "JetBrains Mono", Consolas, monospace;
+
+  /* Numbers must never be thin (§3.1: "không dùng font quá mỏng cho số quan trọng"). */
+  --weight-num: 600;
+  --weight-label: 500;
+
+  /* ---- derived, still no new hues ---- */
+  /* Panels lifted above --panel for table headers / nested sub-panels. */
+  --panel-raised: #0d1426;
+  --panel-sunken: #070c17;
+  --border-soft: color-mix(in srgb, var(--border) 62%, transparent);
+  --grid-line: color-mix(in srgb, var(--cyan) 9%, transparent);
+
+  /* State tints for banners / chips (alpha of the exact §3.1 hues).
+     Alpha values are NOT arbitrary: a chip draws its label in the SAME hue on
+     top of its own tint, so the tint raises the background toward the text and
+     eats contrast. Measured WCAG ratios at these alphas (see the contrast
+     report):
+       clean 6.83 · temp 7.89 · suspect 5.78 · bad 4.51 · unknown 6.05 · conflict 4.78
+     `bad` and `conflict` sit close to the 4.5 AA floor, so their tints are kept
+     low on purpose — do not raise them without re-measuring. */
+  --tint-cyan: color-mix(in srgb, var(--cyan) 12%, transparent);
+  --tint-clean: color-mix(in srgb, var(--state-clean) 14%, transparent);
+  --tint-temp: color-mix(in srgb, var(--state-temp) 14%, transparent);
+  --tint-suspect: color-mix(in srgb, var(--state-suspect) 14%, transparent);
+  --tint-bad: color-mix(in srgb, var(--state-bad) 12%, transparent);
+  --tint-unknown: color-mix(in srgb, var(--state-unknown) 14%, transparent);
+  --tint-conflict: color-mix(in srgb, var(--conflict) 16%, transparent);
+
+  /* Glow: at most 1px blur (§3.1 "không dùng quá 1px glow"). */
+  --glow-cyan: 0 0 1px var(--cyan);
+  --glow-clean: 0 0 1px var(--state-clean);
+  --glow-temp: 0 0 1px var(--state-temp);
+  --glow-suspect: 0 0 1px var(--state-suspect);
+  --glow-bad: 0 0 1px var(--state-bad);
+  --glow-unknown: 0 0 1px var(--state-unknown);
+  --glow-conflict: 0 0 1px var(--conflict);
+
+  /* Overlays */
+  --bg-overlay: rgba(5, 8, 16, 0.78);
+
+  /* ---- geometry ---- */
+  --radius: 3px;
+  --radius-sm: 2px;
+  --gap: 10px;
+  --pad: 10px 12px;
+  --header-h: 44px;
+  --console-h: auto;
+  --footer-h: auto;
+
+  /* ---- motion: no continuous blinking anywhere (§3.1, task hard rule) ---- */
+  --t-fast: 120ms;
+  --t-mid: 200ms;
+  --ease: cubic-bezier(0.2, 0.6, 0.2, 1);
+
+  /* ---- map colours: one distinct hue per geo source (§3.3 GeoMapCard) ---- */
+  --map-src-1: #00f0ff;
+  --map-src-2: #22c55e;
+  --map-src-3: #eab308;
+  --map-src-4: #f97316;
+  --map-src-5: #a78bfa;
+  --map-src-6: #60a5fa;
+  --map-src-7: #f472b6;
+  --map-centroid: #ffffff;
+
+  color-scheme: dark;
+}

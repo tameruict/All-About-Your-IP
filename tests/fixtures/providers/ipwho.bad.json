@@ -1,0 +1,9 @@
+{
+  "ip": "45.155.205.1", "success": true, "type": "IPv4", "continent": "Europe",
+  "country": "Russia", "country_code": "RU", "region": "Moscow",
+  "city": "Moscow", "latitude": 55.7558, "longitude": 37.6173, "is_eu": false, "postal": "101000",
+  "calling_code": "7", "capital": "Moscow", "borders": "AZ,BY,CN",
+  "flag": { "img": "https://cdn.ipwhois.com/flags/svg/ru.svg", "emoji": "\ud83c\uddf7\ud83c\uddfa", "emoji_unicode": "U+1F1F7 U+1F1FA" },
+  "connection": { "asn": 44477, "org": "Stark Industries Solutions Ltd", "isp": "Stark Industries Solutions", "domain": "stark-industries.solutions" },
+  "timezone": { "id": "Europe/Moscow", "abbr": "MSK", "is_dst": false, "offset": 10800, "utc": "+03:00", "current_time": "2026-10-25T14:12:00+03:00" }
+}

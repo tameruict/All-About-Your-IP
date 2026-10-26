@@ -1,0 +1,5 @@
+{
+  "status": "fail",
+  "message": "quota exceeded — rate limited (45 req/min free tier)",
+  "query": "8.8.8.8"
+}

@@ -1,0 +1,20 @@
+{
+  "data": {
+    "ipAddress": "185.244.1.1",
+    "isPublic": true,
+    "ipVersion": 4,
+    "isWhitelisted": false,
+    "abuseConfidenceScore": 30,
+    "countryCode": "NL",
+    "countryName": "Netherlands",
+    "usageType": "Data Center/Web Hosting/Transit",
+    "isp": "Datacamp Limited",
+    "domain": "cdn77.com",
+    "hostnames": ["unn-185-244-1-1.cdn77.com"],
+    "isTor": false,
+    "totalReports": 9,
+    "numDistinctUsers": 4,
+    "lastReportedAt": "2026-10-21T08:03:00+00:00"
+  },
+  "meta": { "generatedAt": "2026-10-25T12:12:00+07:00" }
+}

@@ -1,0 +1,16 @@
+{
+  "status": "ok",
+  "status_code": 200,
+  "data": {
+    "resource": "185.244.1.0/24",
+    "asns": [ { "asn": 212238, "holder": "DATACAMP, NL", "announced": true } ],
+    "prefix": "185.244.1.0/24",
+    "block": "185.244.0.0/18",
+    "name": "DATACAMP-LIMITED",
+    "shortname": "DATACAMP",
+    "is_announced": true,
+    "category": "cidr_root",
+    "irr_sources": ["RIPE"]
+  },
+  "see_also": []
+}

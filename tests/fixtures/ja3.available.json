@@ -1,0 +1,6 @@
+{
+  "ja3": "771,4865-4866-4867,0-23-65281,29-23-24,0",
+  "ja3_source": "tls.peet.ws/api/all (qua proxy)",
+  "confidence": "low",
+  "notes": ["JA3 chỉ là tín hiệu phụ, nguồn không ổn định"]
+}

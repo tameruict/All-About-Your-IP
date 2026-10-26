@@ -1,0 +1,1 @@
+{ "error": { "title": "Missing token", "message": "Complete token required.", "code": 401 } }

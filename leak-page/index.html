@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="referrer" content="no-referrer" />
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'none'; img-src 'none'; connect-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'" />
+<title>Local leak probe — offline</title>
+<!--
+  LOCAL LEAK PROBE (bundled with IP Checker, spec §8.2)
+  =====================================================
+  Runs entirely offline. The ONLY network endpoints this page may touch are:
+    - <origin>/report      (loopback collector started by the Rust core)
+    - <origin>/dns-probe   (same collector; used only if the collector says it can
+                            see the recursive resolver — hard mode)
+  No fonts, no CDN, no analytics, no remote images, no favicon request.
+
+  Collected signals, and why:
+    1. WebRTC ICE candidates — a real (host / public / mDNS) candidate surfacing
+       while a proxy is set means the browser can bypass the proxy for UDP.
+    2. /dns-probe via fetch — proves an HTTP request from the page reached the
+       collector, and lets the collector report the source address it observed.
+    3. Intl timezone + navigator.language vs the exit-IP geo (compared in Rust).
+    4. Automation / headless fingerprints — warn only, never a verdict on its own.
+    5. WebGL renderer — headless software rasterisers are a fingerprint tell.
+
+  Hard limits (also repeated in the UI payload by browser_leak.rs):
+    - This page cannot observe which DNS server the browser used for its own
+      name resolution. It can only infer from fetch success/failure.
+    - DoH forces the resolver to an HTTPS endpoint, so a plain DNS-query probe
+      sees nothing even when the user's OS resolver is leaking.
+    - WebRTC may be disabled by policy or blocked by the proxy; zero candidates
+      therefore proves nothing.
+-->
+<style>
+  :root { color-scheme: dark; }
+  html, body {
+    margin: 0; padding: 18px 22px;
+    background: #050810; color: #E6F1FF;
+    font-family: "JetBrains Mono", "IBM Plex Mono", Consolas, monospace;
+    font-size: 13px; line-height: 1.55;
+  }
+  h1 { font-size: 14px; letter-spacing: .12em; text-transform: uppercase; color: #00F0FF; margin: 0 0 4px; }
+  .sub { color: #8B9BB4; margin-bottom: 14px; }
+  table { border-collapse: collapse; width: 100%; max-width: 940px; }
+  th, td { text-align: left; padding: 3px 10px 3px 0; vertical-align: top; }
+  th { color: #8B9BB4; font-weight: 500; width: 200px; white-space: nowrap; }
+  td { color: #E6F1FF; word-break: break-all; }
+  .ok { color: #22C55E; } .warn { color: #EAB308; } .bad { color: #EF4444; } .dim { color: #8B9BB4; }
+  #status { margin-top: 14px; color: #8B9BB4; }
+</style>
+</head>
+<body>
+<h1>Local leak probe</h1>
+<div class="sub">Chạy offline — chỉ nói chuyện với collector loopback của app. Không gọi mạng ngoài.</div>
+<table id="grid">
+  <tr><th>collector payload</th><td id="f-token" class="dim">reading token…</td></tr>
+  <tr><th>loopback /dns-probe</th><td id="f-dns" class="dim">pending</td></tr>
+  <tr><th>origin</th><td id="f-origin" class="dim">-</td></tr>
+</table>
+<div id="status">Collecting…</div>
+<script>
+(function () {
+  "use strict";
+
+  /* ------------------------------------------------------------------ */
+  /* 0. Token + collector configuration                                   */
+  /* ------------------------------------------------------------------ */
+
+  // The token sits in the query string because the collector needs it before
+  // it answers anything. It is a per-launch random nonce, single use, never
+  // written to disk. When absent the page still works but cannot report.
+  var TOKEN = null;
+  try {
+    TOKEN = new URLSearchParams(location.search).get("token");
+  } catch (e) {
+    TOKEN = null;
+  }
+
+  var STATUS_EL = document.getElementById("status");
+  var DNS_EL = document.getElementById("f-dns");
+  var PAYLOAD_EL = document.getElementById("f-token");
+  var ORIGIN_EL = document.getElementById("f-origin");
+
+  ORIGIN_EL.textContent = location.origin || "(null)";
+
+  function setText(el, text, cls) {
+    if (!el) return;
+    el.textContent = text;
+    el.className = cls || "";
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* 1. WebRTC ICE collection                                             */
+  /* ------------------------------------------------------------------ */
+
+  function collectIceCandidates(timeoutMs) {
+    return new Promise(function (resolve) {
+      var out = [];
+      var finished = false;
+      var pc = null;
+      var timer = null;
+
+      function finish() {
+        if (finished) return;
+        finished = true;
+        if (timer !== null) { clearTimeout(timer); timer = null; }
+        try { if (pc) pc.close(); } catch (e) { /* ignore */ }
+        resolve(out);
+      }
+
+      try {
+        if (typeof RTCPeerConnection !== "function") { return resolve(out); }
+        pc = new RTCPeerConnection({ iceServers: [] });
+
+        pc.onicecandidate = function (ev) {
+          if (!ev || !ev.candidate) { return finish(); }   // null candidate = end of gathering
+          var c = ev.candidate;
+          out.push({
+            candidate: String(c.candidate || ""),
+            type: c.type || null,
+            protocol: c.protocol || null,
+            address: c.address || null,
+            port: c.port || null
+          });
+        };
+
+        // A data channel forces a real gathering pass.
+        try { pc.createDataChannel("probe"); } catch (e) { /* ignore */ }
+
+        Promise.resolve(pc.createOffer())
+          .then(function (offer) { return pc.setLocalDescription(offer); })
+          .catch(function () { finish(); });
+
+        timer = setTimeout(finish, timeoutMs);
+      } catch (e) {
+        finish();
+      }
+    });
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* 2. Automation / headless fingerprints (warn only)                    */
+  /* ------------------------------------------------------------------ */
+
+  function webglRenderer() {
+    try {
+      var canvas = document.createElement("canvas");
+      var gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+      if (!gl) return null;
+      var ext = gl.getExtension("WEBGL_debug_renderer_info");
+      if (!ext) return null;
+      var r = gl.getParameter(ext.UNMASKED_RENDERER_WEBGL);
+      return r == null ? null : String(r);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function headlessSignals(nav) {
+    var sig = {};
+
+    sig.webdriver = nav.webdriver === true;
+
+    sig.plugins_length = (nav.plugins && typeof nav.plugins.length === "number") ? nav.plugins.length : null;
+
+    sig.languages = Array.isArray(nav.languages) ? nav.languages.slice(0, 8) : null;
+    sig.language = typeof nav.language === "string" ? nav.language : null;
+
+    // chrome runtime object present => looks like a real Chromium install,
+    // about:blank-style probes or a raw CDP client often miss it.
+    var chromeKeys = null;
+    try {
+      chromeKeys = nav.userAgentData ? true : null;
+    } catch (e) { chromeKeys = null; }
+    sig.has_user_agent_data = chromeKeys === true;
+
+    sig.hardware_concurrency = typeof nav.hardwareConcurrency === "number" ? nav.hardwareConcurrency : null;
+    sig.device_memory = typeof nav.deviceMemory === "number" ? nav.deviceMemory : null;
+    sig.max_touch_points = typeof nav.maxTouchPoints === "number" ? nav.maxTouchPoints : null;
+
+    var perms = null;
+    try {
+      perms = typeof navigator.permissions !== "undefined" && navigator.permissions !== null;
+    } catch (e) { perms = null; }
+    sig.has_permissions_api = perms === true;
+
+    sig.webgl_renderer = webglRenderer();
+
+    return sig;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* 3. Page-side environment                                             */
+  /* ------------------------------------------------------------------ */
+
+  function pageEnv(nav) {
+    var tz = null;
+    try {
+      tz = Intl.DateTimeFormat().resolvedOptions().timeZone || null;
+    } catch (e) { tz = null; }
+
+    return {
+      user_agent: String(nav.userAgent || ""),
+      platform: typeof nav.platform === "string" ? nav.platform : null,
+      timezone: tz,
+      tz_offset_minutes: (typeof Date === "function") ? (new Date().getTimezoneOffset()) : null,
+      language: typeof nav.language === "string" ? nav.language : null,
+      languages: Array.isArray(nav.languages) ? nav.languages.slice(0, 8) : null,
+      hardware_concurrency: typeof nav.hardwareConcurrency === "number" ? nav.hardwareConcurrency : null,
+      screen: (window.screen ? String(window.screen.width) + "x" + String(window.screen.height) : null),
+      dnt: (typeof nav.doNotTrack === "string" ? nav.doNotTrack : null)
+    };
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* 4. /dns-probe — only attempted when the collector advertises it      */
+  /* ------------------------------------------------------------------ */
+
+  var hardDns = false;   // flipped on by bootstrap=true
+
+  function probeDns() {
+    if (!TOKEN || !hardDns) {
+      setText(DNS_EL, "skipped — collector chưa bật hard mode", "dim");
+      return Promise.resolve({ attempted: false, ok: null, error: "not attempted" });
+    }
+    var url = "/dns-probe?token=" + encodeURIComponent(TOKEN) + "&t=" + Date.now();
+    // The request itself is the probe: an HTTP proxy that cannot resolve must
+    // fail the request, and the collector records the client it saw.
+    return fetch(url, { cache: "no-store", credentials: "omit", referrerPolicy: "no-referrer" })
+      .then(function (r) {
+        if (!r.ok) throw new Error("collector HTTP " + r.status);
+        return r.json();
+      })
+      .then(function (j) {
+        setText(DNS_EL, "ok — collector thấy client " + (j && j.observed ? j.observed : "?"), "ok");
+        return { attempted: true, ok: true, error: null, observed: (j && j.observed) || null };
+      })
+      .catch(function (e) {
+        setText(DNS_EL, "failed — " + String(e && e.message || e), "warn");
+        return { attempted: true, ok: false, error: String(e && e.message || e) };
+      });
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* 5. Report                                                            */
+  /* ------------------------------------------------------------------ */
+
+  function report(payload) {
+    if (!TOKEN) {
+      setText(PAYLOAD_EL, "no token — payload kept in page only", "warn");
+      window.__LEAK_PAYLOAD__ = payload;    // inspection convenience, still nothing persisted
+      return Promise.resolve(null);
+    }
+    return fetch("/report?token=" + encodeURIComponent(TOKEN), {
+      method: "POST",
+      cache: "no-store",
+      credentials: "omit",
+      referrerPolicy: "no-referrer",
+      headers: { "Content-Type": "text/plain;charset=UTF-8" },
+      // text/plain avoids a CORS preflight against the loopback collector.
+      body: JSON.stringify(payload)
+    }).then(function (r) {
+      setText(PAYLOAD_EL, "sent — collector HTTP " + r.status, "ok");
+      return r.status;
+    }).catch(function (e) {
+      setText(PAYLOAD_EL, "send failed — " + String(e && e.message || e), "bad");
+      return null;
+    });
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* 6. Bootstrap                                                         */
+  /* ------------------------------------------------------------------ */
+
+  function bootstrap() {
+    if (!TOKEN) {
+      setText(PAYLOAD_EL, "no token", "warn");
+      STATUS_EL.textContent = "No token: opened without the app collector. Signals are shown but not reported.";
+    }
+
+    // Ask the collector whether the hard DNS mode is available, then run the
+    // leak collection in parallel with the ICE gathering.
+    var cfgPromise;
+    if (TOKEN) {
+      cfgPromise = fetch("/cfg?token=" + encodeURIComponent(TOKEN), {
+        cache: "no-store", credentials: "omit", referrerPolicy: "no-referrer"
+      }).then(function (r) { return r.json(); }).then(function (j) {
+        hardDns = !!(j && j.dns_probe_enabled);
+        return j || {};
+      }).catch(function () { return {}; });
+    } else {
+      cfgPromise = Promise.resolve({});
+    }
+
+    var icePromise = collectIceCandidates(6000);
+
+    Promise.all([cfgPromise, icePromise]).then(function (res) {
+      var cfg = res[0];
+      var ice = res[1];
+      var nav = window.navigator;
+
+      return probeDns().then(function (dns) {
+        var payload = {
+          schema: "ip-checker/leak-probe@1",
+          token_ok: !!TOKEN,
+          rtc_supported: (typeof RTCPeerConnection === "function"),
+          ice_candidates: ice,
+          dns_probe: dns,
+          page: pageEnv(nav),
+          headless: headlessSignals(nav),
+          collector_cfg: cfg
+        };
+        STATUS_EL.textContent = "Collecting done — reporting to collector…";
+        return report(payload);
+      });
+    }).then(function () {
+      STATUS_EL.textContent = "Done. You can close this window.";
+    }).catch(function (e) {
+      STATUS_EL.textContent = "Probe error: " + String(e && e.message || e);
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", bootstrap, { once: true });
+  } else {
+    bootstrap();
+  }
+})();
+</script>
+</body>
+</html>

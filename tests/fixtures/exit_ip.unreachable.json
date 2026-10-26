@@ -1,0 +1,11 @@
+{
+  "reachable": false,
+  "endpoint_results": [
+    { "endpoint": "https://httpbin.org/ip",         "ok": false, "exit_ip": null, "latency_ms": null, "error": "connect timeout after 8000 ms" },
+    { "endpoint": "https://ip.oxylabs.io/location", "ok": false, "exit_ip": null, "latency_ms": null, "error": "connect timeout after 8000 ms" }
+  ],
+  "exit_ip": null,
+  "differs_from_input": false,
+  "endpoints_disagree": false,
+  "notes": ["Không kết nối được tới proxy — kiểm tra IP:port và giao thức"]
+}

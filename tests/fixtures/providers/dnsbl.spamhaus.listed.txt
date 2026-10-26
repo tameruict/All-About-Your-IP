@@ -1,0 +1,9 @@
+# Returned: 127.0.0.2 (SBL — known spam source)
+answer=127.0.0.2
+codes:
+  127.0.0.2 = SBL (Spamhaus Block List)
+  127.0.0.3 = SBL CSS
+  127.0.0.4-7 = XBL (exploits)
+  127.0.0.9 = SBL DROP
+  127.0.0.10-11 = PBL (policy / dynamic)
+note=Spamhaus ZEN hit must force verdict downgrade (§6.5) and requires a second confirming source before "Bẩn".

@@ -1,0 +1,9 @@
+{
+  "ip": "2001:4860:4860::8888", "success": true, "type": "IPv6", "continent": "Asia",
+  "country": "Singapore", "country_code": "SG", "region": "Central Singapore",
+  "city": "Singapore", "latitude": 1.2868, "longitude": 103.8503, "is_eu": false, "postal": "018989",
+  "calling_code": "65", "capital": "Singapore", "borders": "",
+  "flag": { "img": "https://cdn.ipwhois.com/flags/svg/sg.svg", "emoji": "\ud83c\uddf8\ud83c\uddec", "emoji_unicode": "U+1F1F8 U+1F1EC" },
+  "connection": { "asn": 15169, "org": "Google LLC", "isp": "Google LLC", "domain": "google.com" },
+  "timezone": { "id": "Asia/Singapore", "abbr": "+08", "is_dst": false, "offset": 28800, "utc": "+08:00", "current_time": "2026-10-25T19:12:00+08:00" }
+}

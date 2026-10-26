@@ -1,0 +1,1 @@
+{ "_simulation": "no body — the mock server sleeps past the provider timeout and closes, harness must map this to ProviderError.kind = timeout" }

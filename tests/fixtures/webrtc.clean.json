@@ -1,0 +1,14 @@
+{
+  "measured": true,
+  "webrtc_leak": false,
+  "webrtc_candidates": [],
+  "dns_leak": false,
+  "dns_method": "dns",
+  "browser_timezone": "Europe/Amsterdam",
+  "ip_timezone": "Europe/Amsterdam",
+  "timezone_mismatch": false,
+  "headless_flags": ["navigator.webdriver=true"],
+  "ja3": null,
+  "downgrade": false,
+  "notes": ["Không thấy WebRTC lộ IP ngoài IP thoát proxy", "flag headless chỉ để cảnh báo, không tự hạ verdict"]
+}

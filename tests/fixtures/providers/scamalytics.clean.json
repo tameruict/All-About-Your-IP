@@ -1,0 +1,19 @@
+{
+  "status": "ok",
+  "scamalytics_score": 3,
+  "scamalytics_risk": "low",
+  "ip": "8.8.8.8",
+  "isp": "Google LLC",
+  "organization": "Google Public DNS",
+  "asn": 15169,
+  "country": "Singapore",
+  "country_code": "SG",
+  "proxy": false,
+  "vpn": false,
+  "tor": false,
+  "server": true,
+  "anonymizing_vpn_network": false,
+  "blocklisted_ips": 0,
+  "last_seen": "2026-10-24",
+  "score_color": "green"
+}

@@ -1,0 +1,24 @@
+{
+  "$comment": "§13.8 — the srflx candidate carries the LAN address as its raddr and a host candidate exposes 192.168.1.42 directly. Real IP leaked.",
+  "measured": true,
+  "webrtc_leak": true,
+  "webrtc_candidates": [
+    "192.168.1.42",
+    "185.244.1.1 (srflx raddr 192.168.1.42)"
+  ],
+  "dns_leak": false,
+  "dns_method": "dns",
+  "dns_resolver_seen": "185.244.1.1",
+  "browser_timezone": "Europe/Amsterdam",
+  "ip_timezone": "Europe/Amsterdam",
+  "timezone_mismatch": false,
+  "browser_language": "vi-VN",
+  "ip_country": "NL",
+  "country_mismatch": false,
+  "headless_flags": ["navigator.webdriver=true", "plugins.length=0"],
+  "ja3": null,
+  "ja3_source": null,
+  "tcp_fingerprint_mismatch": null,
+  "downgrade": true,
+  "notes": ["WebRTC rò IP thật của máy — verdict bị hạ bậc", "Không dùng thông tin leak làm verdict duy nhất"]
+}

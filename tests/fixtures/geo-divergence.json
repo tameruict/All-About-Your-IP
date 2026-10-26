@@ -1,0 +1,35 @@
+{
+  "$comment": "Geo divergence fixture - §13.6 / §6.3 / §7.7. Purpose: prove the app does NOT commit a city when two sources disagree wildly, and flags the divergence. SAME IP, two providers, two continents. Distance ~9000 km, far beyond both the 200 km city-commit threshold and the 2000 km red-warning threshold.",
+  "ip": "45.155.205.1",
+  "note": "45.155.205.1 resolved to Singapore by one source and Moscow by another. The centroid lands in open water, which is exactly why the app must refuse to name a city.",
+  "source_a": {
+    "provider": "ip_api",
+    "fixture": "ip_api.divergent-sg.json",
+    "country": "Singapore",
+    "country_code": "SG",
+    "city": "Singapore",
+    "lat": 1.2868,
+    "lon": 103.8503
+  },
+  "source_b": {
+    "provider": "ipinfo",
+    "fixture": "ipinfo.bad.json",
+    "country": "Russia",
+    "country_code": "RU",
+    "city": "Moscow",
+    "lat": 55.7558,
+    "lon": 37.6173
+  },
+  "expected_distance_km_min": 8000,
+  "expected": {
+    "country_consensus": false,
+    "country_confidence": "low",
+    "city_committed": false,
+    "city": null,
+    "big_divergence": true,
+    "spread": "high",
+    "radius_km_gt": 2000,
+    "verdict_effect": "consistency aspect drops; city shows as disputed, never as a single confident value",
+    "notes_mention_divergence": true
+  }
+}

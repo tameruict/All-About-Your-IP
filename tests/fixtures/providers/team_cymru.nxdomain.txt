@@ -1,0 +1,1 @@
+"_simulation: NXDOMAIN — no ASN record for this IP (valid answer, not an error)"

@@ -1,0 +1,21 @@
+{
+  "status": "ok",
+  "185.244.1.1": {
+    "asn": "AS212238",
+    "range": "185.244.1.0/24",
+    "hostname": "unn-185-244-1-1.cdn77.com",
+    "provider": "Datacamp Limited",
+    "continent": "Europe",
+    "country": "Netherlands",
+    "isocode": "NL",
+    "region": "North Holland",
+    "city": "Amsterdam",
+    "timezone": "Europe/Amsterdam",
+    "latitude": 52.3740,
+    "longitude": 4.8897,
+    "proxy": "yes",
+    "type": "VPN",
+    "risk": 48
+  },
+  "query_time": 18
+}

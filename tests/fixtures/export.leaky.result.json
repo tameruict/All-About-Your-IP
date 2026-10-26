@@ -1,0 +1,29 @@
+{
+  "$comment": "NEGATIVE TEST FIXTURE — this file MUST make the §13.10 secret scanner FAIL. Proves the scanner is not a no-op.",
+  "check_id": "chk-fixture-leaky",
+  "ip": "8.8.8.8",
+  "mode": "proxy",
+  "verdict": "Sạch",
+  "clean_score": 90,
+  "confidence_score": 80,
+  "verdict_reason": "fixture",
+  "checked_at": "2026-10-25T11:30:00+07:00",
+  "proxy_host": "45.155.205.1",
+  "proxy_port": 8080,
+  "proxy_protocol": "socks5",
+  "proxy_username": "proxyuser_sentinel",
+  "proxy_password": "S3cr3t-Pa55-SENTINEL-8b1f",
+  "evidence": [
+    {
+      "provider": "ipqualityscore",
+      "category": "fraud",
+      "upstream": "ipqualityscore",
+      "signal": "Clean",
+      "raw_score": 12,
+      "checked_at": "2026-10-25T11:30:00+07:00",
+      "source_url": "https://www.ipqualityscore.com/?key=IPQS_SENTINEL_KEY_9f3a2c7b1d",
+      "raw": { "request_url": "https://ipqualityscore.com/api/json/ip/IPQS_SENTINEL_KEY_9f3a2c7b1d/8.8.8.8" }
+    }
+  ],
+  "debug_log": "GET /api/v2/check?key=ABUSEIPDB_SENTINEL_KEY_4e8d1a6f0c status=200"
+}

@@ -1,0 +1,21 @@
+{
+  "status": "success",
+  "country": "Singapore",
+  "countryCode": "SG",
+  "region": "01",
+  "regionName": "Central Singapore",
+  "city": "Singapore",
+  "zip": "018989",
+  "lat": 1.2868,
+  "lon": 103.8503,
+  "timezone": "Asia/Singapore",
+  "isp": "Google LLC",
+  "org": "Google Public DNS",
+  "as": "AS15169 Google LLC",
+  "asname": "GOOGLE",
+  "reverse": "dns.google",
+  "mobile": false,
+  "proxy": false,
+  "hosting": true,
+  "query": "8.8.8.8"
+}

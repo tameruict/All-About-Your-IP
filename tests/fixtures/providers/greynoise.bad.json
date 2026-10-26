@@ -1,0 +1,10 @@
+{
+  "ip": "45.155.205.1",
+  "noise": true,
+  "riot": false,
+  "classification": "malicious",
+  "name": "SSH bruteforcer / mass scanner",
+  "link": "https://viz.greynoise.io/ip/45.155.205.1",
+  "last_seen": "2026-10-25",
+  "message": "Success"
+}

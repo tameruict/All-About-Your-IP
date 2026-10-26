@@ -1,0 +1,164 @@
+{
+  "$comment": "Proxy-mode fixtures — spec §8.1 (exit IP, ≥2 endpoints), §8.2 (WebRTC/DNS/timezone leak), §8.3 (speed, ≥2 endpoints), §8.4 (safety), §13.7, §13.8. Consumed by tests/harness/spec13.test.mjs.",
+  "schema_version": 1,
+
+  "exit_ip": {
+    "$comment": "§8.1 — call at least TWO endpoints through the proxy and compare with the typed IP.",
+    "endpoints_required": 2,
+    "cases": {
+      "mismatch": {
+        "$comment": "§13.7 — the red-flag case. Typed 45.155.205.1, the proxy actually exits from 185.244.1.1.",
+        "input": "45.155.205.1:8080",
+        "fixture": "exit_ip.mismatch.json",
+        "expect": {
+          "reachable": true,
+          "exit_ip": "185.244.1.1",
+          "differs_from_input": true,
+          "red_flag": true,
+          "verdict_effect": "downgrade — the exit IP is what gets scored, and the mismatch itself is surfaced",
+          "notes_non_empty": true
+        }
+      },
+      "match": {
+        "input": "185.244.1.1:8080",
+        "fixture": "exit_ip.match.json",
+        "expect": { "reachable": true, "exit_ip": "185.244.1.1", "differs_from_input": false, "red_flag": false }
+      },
+      "endpoints_disagree": {
+        "$comment": "Rotating proxy — two endpoints report two different exits.",
+        "input": "45.155.205.1:8080",
+        "fixture": "exit_ip.disagree.json",
+        "expect": {
+          "endpoints_disagree": true,
+          "exit_ip": null,
+          "differs_from_input": false,
+          "notes_mention": "xoay",
+          "must_not": "silently pick the first endpoint"
+        }
+      },
+      "unreachable": {
+        "input": "203.0.113.9:1080",
+        "fixture": "exit_ip.unreachable.json",
+        "expect": { "reachable": false, "exit_ip": null, "error_kind": "network", "check_still_completes": true }
+      }
+    }
+  },
+
+  "webRTC": {
+    "$comment": "§8.2 + §13.8 — an ICE candidate that carries the machine's real IP (not the proxy exit) is a leak and MUST downgrade the verdict.",
+    "cases": {
+      "leak_local_ip": {
+        "fixture": "webrtc.leak-local.json",
+        "input_candidates": [
+          "candidate:1 1 UDP 2122252543 192.168.1.42 54321 typ host",
+          "candidate:2 1 UDP 1686052607 185.244.1.1 54322 typ srflx raddr 192.168.1.42 rport 54321",
+          "candidate:3 1 TCP 2105524479 192.168.1.42 9 typ host tcptype active"
+        ],
+        "proxy_exit_ip": "185.244.1.1",
+        "expect": {
+          "webrtc_leak": true,
+          "webrtc_candidates_non_empty": true,
+          "leaked_ips_include": "192.168.1.42",
+          "downgrade": true,
+          "card_state": "red",
+          "verdict_demoted_by_at_least_one_step": true
+        }
+      },
+      "leak_public_ip": {
+        "fixture": "webrtc.leak-public.json",
+        "input_candidates": [
+          "candidate:1 1 UDP 2122252543 203.0.113.77 54321 typ host",
+          "candidate:2 1 UDP 1686052607 185.244.1.1 54322 typ srflx raddr 203.0.113.77 rport 54321"
+        ],
+        "proxy_exit_ip": "185.244.1.1",
+        "expect": { "webrtc_leak": true, "leaked_ips_include": "203.0.113.77", "downgrade": true }
+      },
+      "clean": {
+        "fixture": "webrtc.clean.json",
+        "input_candidates": [
+          "candidate:1 1 UDP 1686052607 185.244.1.1 54322 typ srflx raddr 0.0.0.0 rport 0"
+        ],
+        "proxy_exit_ip": "185.244.1.1",
+        "expect": { "webrtc_leak": false, "downgrade": false }
+      },
+      "no_proxy": {
+        "$comment": "§1.2 — ip_only mode must never invent measurements.",
+        "mode": "ip_only",
+        "expect": { "measured": false, "webrtc_leak": false, "display_text": "Chưa đo được — cần nhập proxy" }
+      }
+    }
+  },
+
+  "dns_leak": {
+    "$comment": "§8.2 — document the method (SOCKS5 remote DNS vs HTTP CONNECT) and never overclaim (DoH blind spot).",
+    "cases": {
+      "socks5_remote_dns_ok":  { "protocol": "socks5", "expect": { "dns_method": "dns", "dns_leak": false } },
+      "http_proxy_resolver_leak": { "protocol": "http", "resolver_seen": "192.168.1.1", "expect": { "dns_leak": true, "notes_mention": "resolver" } },
+      "doh_unknown":           { "protocol": "http", "resolver_seen": null, "expect": { "dns_leak": null, "dns_method": "unknown", "notes_mention": "DoH" } }
+    }
+  },
+
+  "timezone_consistency": {
+    "$comment": "§8.2 — browser timezone must line up with the exit IP timezone.",
+    "cases": {
+      "match":    { "browser": "Asia/Amsterdam-ish/Europe/Amsterdam", "ip": "Europe/Amsterdam", "expect": { "timezone_mismatch": false } },
+      "mismatch": { "browser": "Asia/Ho_Chi_Minh", "ip": "Europe/Amsterdam", "expect": { "timezone_mismatch": true, "downgrade_soft": true } }
+    }
+  },
+
+  "headless_flags": {
+    "$comment": "§8.2 — warn only, never the sole verdict input.",
+    "detected_example": ["navigator.webdriver=true", "plugins.length=0", "chrome.runtime missing"],
+    "expect": { "headless_flags_non_empty": true, "affects_verdict_alone": false }
+  },
+
+  "ja3": {
+    "$comment": "§8.2 — JA3 is optional and low-confidence. If it cannot be fetched through the proxy, the field stays null with a reason. NEVER fabricate.",
+    "cases": {
+      "unavailable": { "expect": { "ja3": null, "ja3_source": null, "note_contains": "không lấy được" } },
+      "available":   { "fixture": "ja3.available.json", "expect": { "ja3": "771,4865-4866-4867,0-23-65281,29-23-24,0", "ja3_source_non_empty": true, "low_confidence_note": true } }
+    }
+  },
+
+  "speed": {
+    "$comment": "§8.3 — ≥2 independent endpoints, download + latency + jitter. No upload unless explicitly enabled.",
+    "endpoints_required": 2,
+    "cases": {
+      "two_endpoints_ok": {
+        "fixture": "speed.two-endpoints.json",
+        "expect": {
+          "measured": true,
+          "download_mbps_gt": 0,
+          "latency_ms_gt": 0,
+          "jitter_ms_gte": 0,
+          "measured_at_iso": true,
+          "upload_mbps": null,
+          "note_relative_only": true
+        }
+      },
+      "one_endpoint_down": {
+        "fixture": "speed.one-endpoint-down.json",
+        "expect": { "measured": true, "endpoints_ok_count_gte": 1, "notes_mention": "endpoint" }
+      },
+      "all_endpoints_down": {
+        "fixture": "speed.all-down.json",
+        "expect": { "measured": false, "download_mbps": null, "error_non_null": true, "must_not_display": 0 }
+      },
+      "no_proxy": {
+        "mode": "ip_only",
+        "expect": { "measured": false, "display_text": "Chưa đo được — cần nhập proxy" }
+      }
+    }
+  },
+
+  "safety_8_4": {
+    "$comment": "§8.4 — never persist proxy credentials, never try default credentials, never leave Chromium running.",
+    "assertions": [
+      "settings/SQLite/history rows for a proxy check contain proxy_host, proxy_port, proxy_protocol but NO username/password column, and no credential substring appears in any row",
+      "history JSON export of a proxy check contains no 'password', 'passwd', 'auth', 'credential', 'user:pass' token",
+      "the proxy adapter performs exactly one connect attempt per endpoint — no fallback to empty/default credentials",
+      "after a leak run the child browser process is gone (tasklist shows no msedgewebview2/chrome child of the runner)",
+      "browser timeout is 20–30 s and a timed-out run still returns a LeakResult with an error, not a panic"
+    ]
+  }
+}

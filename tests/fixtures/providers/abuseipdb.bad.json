@@ -1,0 +1,20 @@
+{
+  "data": {
+    "ipAddress": "45.155.205.1",
+    "isPublic": true,
+    "ipVersion": 4,
+    "isWhitelisted": false,
+    "abuseConfidenceScore": 88,
+    "countryCode": "RU",
+    "countryName": "Russia",
+    "usageType": "Data Center/Web Hosting/Transit",
+    "isp": "Stark Industries Solutions Ltd",
+    "domain": "stark-industries.solutions",
+    "hostnames": ["spam-relay-01.badhost.example"],
+    "isTor": true,
+    "totalReports": 412,
+    "numDistinctUsers": 97,
+    "lastReportedAt": "2026-10-25T04:41:00+00:00"
+  },
+  "meta": { "generatedAt": "2026-10-25T12:12:00+07:00" }
+}

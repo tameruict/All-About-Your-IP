@@ -1,0 +1,11 @@
+{
+  "reachable": true,
+  "endpoint_results": [
+    { "endpoint": "https://httpbin.org/ip",         "ok": true, "exit_ip": "185.244.1.1", "latency_ms": 390, "error": null },
+    { "endpoint": "https://ip.oxylabs.io/location", "ok": true, "exit_ip": "185.244.1.1", "latency_ms": 455, "error": null }
+  ],
+  "exit_ip": "185.244.1.1",
+  "differs_from_input": false,
+  "endpoints_disagree": false,
+  "notes": []
+}

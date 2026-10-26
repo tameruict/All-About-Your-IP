@@ -1,0 +1,169 @@
+{
+  "$comment": "Mock response set per provider — spec §13.5, §5, §6.1, §15.3 ('each provider needs a mock test: success + timeout + exhausted quota').",
+  "schema_version": 1,
+  "duration_ms": 100,
+  "timeout_simulation": "a fixture whose delay_ms exceeds the provider timeout_ms. Harness must assert ProviderError.kind == 'timeout' and NOT a crash.",
+  "providers": {
+    "ip_api": {
+      "requires_key": false,
+      "endpoint": "http://ip-api.com/json/{ip}?fields=status,message,country,countryCode,regionName,city,zip,lat,lon,timezone,isp,org,as,asname,reverse,mobile,proxy,hosting,query",
+      "clean":         {"file": "ip_api.clean.json"},
+      "suspicious":    {"file": "ip_api.suspicious.json"},
+      "bad":           {"file": "ip_api.bad.json"},
+      "quota_403":     {"file": "ip_api.quota-403.json", "http_status": 429},
+      "timeout":       {"file": "ip_api.timeout.json", "delay_ms": 9000},
+      "expected": {
+        "clean":      {"signal": "Clean",      "country": "SG"},
+        "suspicious": {"signal": "Suspicious", "proxy_flag": true},
+        "bad":        {"signal": "Bad",        "hosting_flag": true}
+      }
+    },
+    "ipwho": {
+      "requires_key": false,
+      "endpoint": "https://ipwho.is/{ip}",
+      "clean":      {"file": "ipwho.clean.json"},
+      "suspicious": {"file": "ipwho.suspicious.json"},
+      "bad":        {"file": "ipwho.bad.json"},
+      "quota_403":  {"file": "ipwho.quota-403.json", "http_status": 429},
+      "timeout":    {"file": "ipwho.timeout.json", "delay_ms": 9000},
+      "expected":   {"clean": {"signal": "Clean", "country": "SG"}, "bad": {"signal": "Bad"}}
+    },
+    "ipinfo": {
+      "requires_key": true,
+      "endpoint": "https://ipinfo.io/{ip}/json?token={token}",
+      "clean":     {"file": "ipinfo.clean.json"},
+      "suspicious":{"file": "ipinfo.suspicious.json"},
+      "bad":       {"file": "ipinfo.bad.json"},
+      "quota_403": {"file": "ipinfo.quota-403.json", "http_status": 429},
+      "timeout":   {"file": "ipinfo.timeout.json", "delay_ms": 9000},
+      "no_key":    {"expected_error": "NoKey", "assert": "check continues, provider marked skipped(missing_key), key never serialised"},
+      "expected":  {"clean": {"signal": "Clean", "country": "SG"}}
+    },
+    "ipqualityscore": {
+      "requires_key": true,
+      "endpoint": "https://ipqualityscore.com/api/json/ip/{token}/{ip}",
+      "clean":      {"file": "ipqs.clean.json"},
+      "suspicious": {"file": "ipqs.suspicious.json"},
+      "bad":        {"file": "ipqs.bad.json"},
+      "quota_403":  {"file": "ipqs.quota-403.json", "http_status": 403},
+      "timeout":    {"file": "ipqs.timeout.json", "delay_ms": 9000},
+      "no_key":     {"expected_error": "NoKey"},
+      "expected": {
+        "clean":      {"fraud_score": 12,  "signal": "Clean"},
+        "suspicious": {"fraud_score": 55,  "signal": "Suspicious"},
+        "bad":        {"fraud_score": 89,  "signal": "Bad"},
+        "quota_403":  {"error": "Quota", "assert": "confidence reduced, verdict != Sach"}
+      },
+      "secret_scrub_assert": "raw JSON must not contain the literal token used in the request URL"
+    },
+    "proxycheck": {
+      "requires_key": false,
+      "endpoint": "https://proxycheck.io/v2/{ip}?vpn=1&asn=1&risk=1",
+      "clean":      {"file": "proxycheck.clean.json"},
+      "suspicious": {"file": "proxycheck.suspicious.json"},
+      "bad":        {"file": "proxycheck.bad.json"},
+      "quota_403":  {"file": "proxycheck.quota-403.json", "http_status": 403},
+      "timeout":    {"file": "proxycheck.timeout.json", "delay_ms": 9000},
+      "expected": {
+        "clean":      {"risk": 0,  "signal": "Clean"},
+        "suspicious": {"risk": 48, "signal": "Suspicious"},
+        "bad":        {"risk": 91, "signal": "Bad"}
+      }
+    },
+    "scamalytics": {
+      "requires_key": true,
+      "endpoint": "https://api11.scamalytics.com/v3/{user}/{key}/?ip={ip}",
+      "clean":     {"file": "scamalytics.clean.json"},
+      "suspicious":{"file": "scamalytics.suspicious.json"},
+      "bad":       {"file": "scamalytics.bad.json"},
+      "quota_403": {"file": "scamalytics.quota-403.json", "http_status": 403},
+      "timeout":   {"file": "scamalytics.timeout.json", "delay_ms": 9000},
+      "no_key":    {"expected_error": "NoKey", "assert": "no scraping fallback — provider skipped, UI shows 'Chưa có nguồn này' + manual link"},
+      "expected":  {"clean": {"scamalytics_score": 3, "signal": "Clean"}, "bad": {"scamalytics_score": 78, "signal": "Bad"}}
+    },
+    "abuseipdb": {
+      "requires_key": true,
+      "endpoint": "https://api.abuseipdb.com/api/v2/check?ipAddress={ip}&maxAgeInDays=90",
+      "clean":     {"file": "abuseipdb.clean.json"},
+      "suspicious":{"file": "abuseipdb.suspicious.json"},
+      "bad":       {"file": "abuseipdb.bad.json"},
+      "quota_403": {"file": "abuseipdb.quota-403.json", "http_status": 429},
+      "timeout":   {"file": "abuseipdb.timeout.json", "delay_ms": 9000},
+      "no_key":    {"expected_error": "NoKey"},
+      "expected": {
+        "clean":      {"abuseConfidenceScore": 0,  "signal": "Clean"},
+        "suspicious": {"abuseConfidenceScore": 30, "signal": "Suspicious"},
+        "bad":        {"abuseConfidenceScore": 88, "signal": "Bad"},
+        "thresholds": {"clean_below": 10, "bad_above": 50}
+      }
+    },
+    "greynoise": {
+      "requires_key": true,
+      "endpoint": "https://api.greynoise.io/v3/community/{ip}",
+      "clean":     {"file": "greynoise.clean.json"},
+      "suspicious":{"file": "greynoise.suspicious.json"},
+      "bad":       {"file": "greynoise.bad.json"},
+      "quota_403": {"file": "greynoise.quota-403.json", "http_status": 429},
+      "timeout":   {"file": "greynoise.timeout.json", "delay_ms": 9000},
+      "no_key":    {"expected_error": "NoKey"},
+      "expected":  {"clean": {"noise": false, "signal": "Clean"}, "bad": {"classification": "malicious", "signal": "Bad"}}
+    },
+    "ripestat": {
+      "requires_key": false,
+      "endpoint": "https://stat.ripe.net/data/prefix-overview/data.json?resource={ip}",
+      "clean":     {"file": "ripestat.clean.json"},
+      "suspicious":{"file": "ripestat.suspicious.json"},
+      "bad":       {"file": "ripestat.bad.json"},
+      "quota_403": {"file": "ripestat.quota-403.json", "http_status": 429},
+      "timeout":   {"file": "ripestat.timeout.json", "delay_ms": 9000},
+      "expected":  {"clean": {"asn": 15169, "rir_country": "US"}}
+    },
+    "bgpview": {
+      "requires_key": false,
+      "endpoint": "https://api.bgpview.io/ip/{ip}",
+      "clean":     {"file": "bgpview.clean.json"},
+      "suspicious":{"file": "bgpview.suspicious.json"},
+      "bad":       {"file": "bgpview.bad.json"},
+      "quota_403": {"file": "bgpview.quota-403.json", "http_status": 429},
+      "timeout":   {"file": "bgpview.timeout.json", "delay_ms": 9000},
+      "expected":  {"clean": {"asn": 15169}, "cross_check": "must agree with ripestat/team_cymru for the shared-quorum test §6.3"}
+    },
+    "team_cymru": {
+      "requires_key": false,
+      "endpoint": "DNS TXT: {reversed_ip}.origin.asn.cymru.com",
+      "clean":     {"file": "team_cymru.clean.txt"},
+      "suspicious":{"file": "team_cymru.suspicious.txt"},
+      "bad":       {"file": "team_cymru.bad.txt"},
+      "quota_403": {"file": "team_cymru.servfail.txt", "simulated": "DNS SERVFAIL"},
+      "timeout":   {"file": "team_cymru.timeout.txt", "simulated": "no answer until timeout"},
+      "expected":  {"clean": {"asn": 15169, "rir_country": "US"}}
+    }
+  },
+  "dnsbl": {
+    "$comment": "Mock DNS answers for §5.3 zones. 127.0.0.x listed, NXDOMAIN = not listed (NOT an error), SERVFAIL = zone dead → disable+log, never crash.",
+    "spamhaus_zen": {
+      "not_listed":  {"file": "dnsbl.spamhaus.not-listed.txt", "answer": "NXDOMAIN"},
+      "listed":      {"file": "dnsbl.spamhaus.listed.txt",     "answer": "127.0.0.2"},
+      "timeout":     {"file": "dnsbl.spamhaus.timeout.txt",    "answer": "TIMEOUT"}
+    },
+    "barracuda":   {"not_listed": "NXDOMAIN", "listed": "127.0.0.2"},
+    "spamcop":     {"not_listed": "NXDOMAIN", "listed": "127.0.0.2"},
+    "sorbs":       {"not_listed": "NXDOMAIN", "listed": "127.0.0.9"},
+    "uceprotect":  {"not_listed": "NXDOMAIN", "listed": "127.0.0.2"},
+    "dronebl":     {"not_listed": "NXDOMAIN", "listed": "127.0.0.8"},
+    "tor_exit":    {"not_listed": "NXDOMAIN", "listed": "127.0.0.2"}
+  },
+  "scenarios": {
+    "$comment": "End-to-end fixture sets consumed by tests/harness §13 tests. Each set is a directory of provider files.",
+    "all_clean":           {"providers": {"ipqualityscore": "clean", "proxycheck": "clean", "abuseipdb": "clean", "ip_api": "clean", "ipwho": "clean", "ripestat": "clean", "bgpview": "clean"}, "dnsbl": "not_listed", "expect": {"verdict": "Sạch", "clean_score_gte": 85}},
+    "community_dnsbl_only":{"providers": "all clean", "dnsbl": "spamcop listed only", "expect": {"verdict_in": ["Tạm", "Nghi ngờ"], "reason_mentions": "1 DNSBL cộng đồng"}},
+    "single_bad_source":   {"providers": {"ipqualityscore": "bad", "proxycheck": "clean", "abuseipdb": "clean"}, "dnsbl": "not_listed", "expect": {"verdict": "Nghi ngờ", "not": "Bẩn", "note": "§6.5 — one bad source cannot flip to Bẩn"}},
+    "spamhaus_only":       {"providers": "all clean", "dnsbl": "spamhaus listed, others not_listed", "expect": {"verdict_max": "Nghi ngờ", "single_source_evidence": true, "note": "§6.5 hard-hit needs a second confirming source"}},
+    "no_keys":             {"providers": {"ipqualityscore": "NoKey", "proxycheck": "clean", "abuseipdb": "NoKey", "ip_api": "clean", "ipwho": "clean"}, "dnsbl": "not_listed", "expect": {"verdict_max": "Chưa đủ dữ liệu", "clean_score_rule": "null OR a genuine weighted score — never a placeholder like 0/50/100", "note": "§13.4 — no fabricated score while fraud quorum < 2"}},
+    "timeout_one":         {"providers": {"ipqualityscore": "clean", "proxycheck": "timeout", "abuseipdb": "clean"}, "dnsbl": "not_listed", "expect": {"completes": true, "confidence_reduced_vs": "all_clean", "note": "§13.5"}},
+    "geo_divergence":      {"providers": {"ip_api": "clean_sg", "ipwho": "clean_vn"}, "expect": {"city_committed": false, "big_divergence": true, "note": "§13.6 — 1 source VN, 1 source SG"}},
+    "quota_exhausted":     {"providers": {"ipqualityscore": "quota_403", "proxycheck": "clean"}, "expect": {"verdict_max": "Chưa đủ dữ liệu", "confidence_reduced": true}},
+    "private_ip":          {"input": "192.168.1.1", "expect": {"api_calls": 0, "banner": true, "error_kind": "private_ip"}},
+    "invalid_format":      {"input": ["999.999.999.999", "abc", "1.2.3.4:99999"], "expect": {"error_immediately": true, "scan_disabled": true}}
+  }
+}
