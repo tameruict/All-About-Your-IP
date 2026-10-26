@@ -40,8 +40,8 @@ $ScriptDir   = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectRoot = Split-Path -Parent $ScriptDir
 $CargoToml   = Join-Path $ProjectRoot 'src-tauri\Cargo.toml'
 $CargoBin    = Join-Path $env:USERPROFILE '.cargo\bin'
-if (-not (Test-Path -LiteralPath $CargoBin)) {
-    $fallbackCargo = 'C:\Users\unknown-user\.cargo\bin'
+if (-not (Test-Path -LiteralPath $CargoBin) -and $env:CARGO_HOME) {
+    $fallbackCargo = Join-Path $env:CARGO_HOME 'bin'
     if (Test-Path -LiteralPath $fallbackCargo) { $CargoBin = $fallbackCargo }
 }
 if (Test-Path -LiteralPath $CargoBin) { $env:PATH = "$CargoBin;$env:PATH" }

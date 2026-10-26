@@ -347,7 +347,7 @@ không ghi phiếu nào.
 
 File export:
 ```
-C:\Users\unknown-user\Downloads\IPChecker\ip-checker-ec788aaa-c351-4575-9291-d8f1c403f75c.json
+%USERPROFILE%\Downloads\IPChecker\ip-checker-ec788aaa-c351-4575-9291-d8f1c403f75c.json
 3,089 B · 15:21:38
 ```
 Tên file chứa đúng `ec788aaa` = id row vừa ghi **trong cùng lần scan**. Nội dung:
@@ -566,7 +566,7 @@ lệch                  : 40 ms
 Đây là phần mạnh nhất, và nó tốt hơn tôi kỳ vọng: **không cần suy ra từ filesystem**,
 chính app in ra đường dẫn.
 ```
-UI text node: "Đã ghi JSON: C:\Users\unknown-user\Downloads\IPChecker\ip-checker-1fac2fe4-3c92-4590-91bb-1f7c4cc37936.json"
+UI text node: "Đã ghi JSON: %USERPROFILE%\Downloads\IPChecker\ip-checker-1fac2fe4-3c92-4590-91bb-1f7c4cc37936.json"
 ```
 File thật, đọc lại:
 ```
