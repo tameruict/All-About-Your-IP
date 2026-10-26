@@ -68,6 +68,7 @@ import {
   getLocalizedShortError,
   getLocalizedNotMeasuredProxy,
   getLocalizedProviderReason,
+  getLocalizedVerdictReason,
 } from "./meta.ts";
 
 test("backward compatibility: constants and types exist verbatim", () => {
@@ -424,4 +425,78 @@ test("getLocalizedProviderReason localizes provider and backend notes", () => {
     "Anycast任播IP — 未锁定城市 (§7.5)",
   );
 });
+
+test("getLocalizedVerdictReason translates all verdict reasons across VI, EN, ZH", () => {
+  const tamVi = "Đủ quorum, có xung đột nhẹ hoặc 1 DNSBL cộng đồng.";
+  assert.equal(getLocalizedVerdictReason(tamVi, "vi"), tamVi);
+  assert.equal(
+    getLocalizedVerdictReason(tamVi, "en"),
+    "Quorum met, minor conflict or 1 community DNSBL.",
+  );
+  assert.equal(
+    getLocalizedVerdictReason(tamVi, "zh"),
+    "达到法定数量，存在轻微冲突或命中 1 个社区 DNSBL。",
+  );
+
+  const cleanVi = "Đủ quorum, các nguồn đồng thuận sạch, không dính blacklist.";
+  assert.equal(
+    getLocalizedVerdictReason(cleanVi, "en"),
+    "Quorum met, sources agree clean, not listed on blacklists.",
+  );
+  assert.equal(
+    getLocalizedVerdictReason(cleanVi, "zh"),
+    "达到法定数量，多源一致纯净，未列入黑名单。",
+  );
+
+  const suspectRangeVi = "Clean Score 55 nằm trong dải 40–64 (§6.5).";
+  assert.equal(
+    getLocalizedVerdictReason(suspectRangeVi, "en"),
+    "Clean Score 55 in 40–64 range (§6.5).",
+  );
+  assert.equal(
+    getLocalizedVerdictReason(suspectRangeVi, "zh"),
+    "纯净度得分 55 处于 40–64 区间 (§6.5)。",
+  );
+
+  const quorumMissingVi = "Chưa đủ dữ liệu: thiếu quorum ở fraud, blacklist — không được kết luận";
+  assert.equal(
+    getLocalizedVerdictReason(quorumMissingVi, "en"),
+    "Insufficient data: missing quorum in fraud, blacklist — no conclusion allowed",
+  );
+  assert.equal(
+    getLocalizedVerdictReason(quorumMissingVi, "zh"),
+    "数据不足：缺少 fraud, blacklist 法定数据源 — 无法得出结论",
+  );
+
+  const singleStrongVi = "Bằng chứng đơn lẻ mạnh (Spamhaus/Tor) chưa có nguồn thứ hai xác nhận — verdict tối đa Nghi ngờ (§6.5). ";
+  assert.equal(
+    getLocalizedVerdictReason(singleStrongVi, "en"),
+    "Strong single evidence (Spamhaus/Tor) without secondary confirmation — max verdict Suspicious (§6.5).",
+  );
+  assert.equal(
+    getLocalizedVerdictReason(singleStrongVi, "zh"),
+    "存在强单点证据 (Spamhaus/Tor) 但无第二源确认 — 最高判定为可疑 (§6.5)。",
+  );
+
+  const singleBadVi = "Chỉ 1 nguồn (ipqs) báo bẩn trong khi các nguồn khác sạch — chưa đủ để kết luận Bẩn, nhưng không thể coi là Tạm (§6.5). ";
+  assert.equal(
+    getLocalizedVerdictReason(singleBadVi, "en"),
+    "Only 1 source (ipqs) reports bad while others are clean — insufficient to conclude Bad, but cannot be considered Fair (§6.5).",
+  );
+  assert.equal(
+    getLocalizedVerdictReason(singleBadVi, "zh"),
+    "仅 1 个源 (ipqs) 报告恶意而其他源纯净 — 不足以判定为恶意，但不能视为一般 (§6.5)。",
+  );
+
+  const conflictVi = "1 nguồn báo bẩn / 3 nguồn báo sạch trong khía cạnh fraud Nguồn lệch: ipqs.";
+  assert.equal(
+    getLocalizedVerdictReason(conflictVi, "en"),
+    "1 source(s) report bad / 3 source(s) report clean in fraud Dissenting sources: ipqs.",
+  );
+  assert.equal(
+    getLocalizedVerdictReason(conflictVi, "zh"),
+    "1 个源报告恶意 / 3 个源报告纯净（在 fraud 方面） 偏差数据源: ipqs。",
+  );
+});
+
 

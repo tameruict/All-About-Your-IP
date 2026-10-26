@@ -1334,50 +1334,90 @@ export function getLocalizedVerdictReason(
 
   if (norm === "en") {
     r = r
+      // Exact full verdicts
       .replace(/Đủ quorum, các nguồn đồng thuận sạch, không dính blacklist\./gi, "Quorum met, sources agree clean, not listed on blacklists.")
+      .replace(/Đủ quorum, có xung đột nhẹ hoặc 1 DNSBL cộng đồng\./gi, "Quorum met, minor conflict or 1 community DNSBL.")
       .replace(/Đồng thuận đa nguồn báo bẩn \/ dính nhiều nhóm blacklist\./gi, "Multi-source consensus reports bad / multiple blacklist groups matched.")
+      .replace(/Clean Score\s*(\d+(?:\.\d+)?)\s*nằm trong dải\s*40[-—–]64\s*\(§6\.5\)\./gi, "Clean Score $1 in 40–64 range (§6.5).")
       .replace(/Không đủ nguồn geo\/ASN\/blacklist để kết luận sạch\./gi, "Insufficient geo/ASN/blacklist sources to conclude clean.")
-      .replace(/Bằng chứng đơn lẻ mạnh \(Spamhaus\/Tor\) chưa có nguồn thứ hai xác nhận - verdict tối đa Nghi ngờ \(§6\.5\)\./gi, "Strong single evidence (Spamhaus/Tor) without secondary confirmation — max verdict Suspicious (§6.5).")
-      .replace(/Nhiều nguồn độc lập cùng báo bẩn \(§6\.5\)\./gi, "Multiple independent sources report bad (§6.5).")
-      .replace(/Các nguồn không hoàn toàn đồng thuận\./gi, "Sources are not in full consensus.")
-      .replace(/Chỉ 1 nguồn \(([^)]+)\) báo bẩn trong khi các nguồn khác sạch - chưa đủ để kết luận Bẩn, nhưng không thể coi là Tạm \(§6\.5\)\./gi, "Only 1 source ($1) reports bad while others are clean — insufficient to conclude Bad, but cannot be considered Fair (§6.5).")
-      .replace(/(\d+)\s+nguồn báo bẩn\s*\/\s*(\d+)\s+nguồn báo sạch trong khía cạnh\s+(.+?)(?=\.|$)/gi, "$1 source(s) report bad / $2 source(s) report clean in $3")
-      .replace(/Khía cạnh (.+?) trộn lẫn nghi ngờ và sạch/gi, "Aspect $1 mixes suspicious and clean signals")
+      // Single hits & conflicts
+      .replace(/Có nguồn báo bẩn trong khi phần còn lại sạch\s*[-—–]\s*không kết luận sạch\s*\(§6\.5\)\.?/gi, "Some sources report bad while others are clean — cannot conclude clean (§6.5). ")
+      .replace(/Bằng chứng đơn lẻ mạnh \(Spamhaus\/Tor\) chưa có nguồn thứ hai xác nhận\s*[-—–]\s*verdict tối đa Nghi ngờ\s*\(§6\.5\)\.?/gi, "Strong single evidence (Spamhaus/Tor) without secondary confirmation — max verdict Suspicious (§6.5). ")
+      .replace(/Dính blacklist nghiêm trọng đã được xác nhận\.?/gi, "Confirmed severe blacklist listing. ")
+      .replace(/Dính blacklist ở\s*[≥>=]+\s*2\s*nhóm\s*[-—–]\s*không thể Sạch\.?/gi, "Listed in ≥2 blacklist groups — cannot be Clean. ")
+      .replace(/Nhiều nguồn độc lập cùng báo bẩn\s*\(§6\.5\)\.?/gi, "Multiple independent sources report bad (§6.5). ")
+      .replace(/Các nguồn không hoàn toàn đồng thuận\.?/gi, "Sources are not in full consensus. ")
+      .replace(/Chỉ 1 nguồn \(([^)]+)\) báo bẩn trong khi các nguồn khác sạch\s*[-—–]\s*chưa đủ để kết luận Bẩn, nhưng không thể coi là Tạm\s*\(§6\.5\)\.?/gi, "Only 1 source ($1) reports bad while others are clean — insufficient to conclude Bad, but cannot be considered Fair (§6.5). ")
+      .replace(/Clean Score\s*<\s*40\s*\(§6\.5\)\.?/gi, "Clean Score < 40 (§6.5). ")
+      .replace(/\s*Nguồn lệch:\s*([^.]+)\./gi, " Dissenting sources: $1.")
+      // Quorum & data checks
+      .replace(/Chưa đủ dữ liệu:\s*thiếu quorum ở\s*(.+?)\s*[-—–]\s*không được kết luận/gi, "Insufficient data: missing quorum in $1 — no conclusion allowed")
+      .replace(/Chưa đủ dữ liệu:\s*không có phiếu nào dùng được/gi, "Insufficient data: no usable votes")
+      .replace(/Verdict bị chặn bởi quorum thiếu:\s*(.+?)(?=\.|$|\s*\(§6\.3\))/gi, "Verdict blocked due to missing quorum: $1 (§6.3)")
+      .replace(/Thiếu quorum:\s*(\d+)\/(\d+)\s*phiếu\s*[-—–]\s*không được kết luận\s*\(§6\.3\)/gi, "Missing quorum: $1/$2 votes — no conclusion allowed (§6.3)")
+      .replace(/Đủ quorum tối thiểu\s*\((\d+)\/(\d+)\),\s*còn thiếu nguồn phụ/gi, "Minimum quorum met ($1/$2), secondary sources missing")
+      .replace(/Đủ quorum\s*\((\d+)\/(\d+)\)/gi, "Quorum met ($1/$2)")
+      // Conflict messages
+      .replace(/(\d+)\s+nguồn báo bẩn\s*\/\s*(\d+)\s+nguồn báo sạch(?:\s+trong khía cạnh|\s+khía cạnh)?\s+([a-zA-Z0-9_-]+)/gi, "$1 source(s) report bad / $2 source(s) report clean in $3")
+      .replace(/Khía cạnh\s+([a-zA-Z0-9_-]+)\s+trộn lẫn nghi ngờ và sạch/gi, "Aspect $1 mixes suspicious and clean signals")
+      // Legacy / score ranges
       .replace(/Điểm Clean nằm trong khoảng Nghi ngờ \(25-69\)\./gi, "Clean score falls in Suspicious range (25-69).")
       .replace(/Điểm Clean nằm trong khoảng Tạm \(70-84\)\./gi, "Clean score falls in Fair range (70-84).")
       .replace(/Điểm Clean sạch \(>=85\)\./gi, "Clean score is clean (>=85).")
       .replace(/Điểm Clean thấp \(<25\) nhưng chưa đủ đồng thuận để kết luận Bẩn\./gi, "Clean score is low (<25) but consensus is insufficient to conclude Bad.")
       .replace(/Quorum thiếu:\s*(.+?)(?=\.|$)/gi, "Missing quorum: $1")
+      // Terms
+      .replace(/khía cạnh bắt buộc/gi, "mandatory aspects")
       .replace(/Chưa đủ dữ liệu/gi, "Insufficient data")
       .replace(/Nghi ngờ/gi, "Suspicious")
       .replace(/Tạm/gi, "Fair")
       .replace(/Bẩn/gi, "Bad")
       .replace(/Sạch/gi, "Clean");
-    return r;
+    return r.trim();
   }
 
   if (norm === "zh") {
     r = r
+      // Exact full verdicts
       .replace(/Đủ quorum, các nguồn đồng thuận sạch, không dính blacklist\./gi, "达到法定数量，多源一致纯净，未列入黑名单。")
-      .replace(/Đồng thuận đa nguồn báo bẩn \/ dính nhiều nhóm blacklist\./gi, "多源共识判定高危 / 命中多个黑名单分组。")
+      .replace(/Đủ quorum, có xung đột nhẹ hoặc 1 DNSBL cộng đồng\./gi, "达到法定数量，存在轻微冲突或命中 1 个社区 DNSBL。")
+      .replace(/Đồng thuận đa nguồn báo bẩn \/ dính nhiều nhóm blacklist\./gi, "多源共识判定恶意 / 命中多个黑名单分组。")
+      .replace(/Clean Score\s*(\d+(?:\.\d+)?)\s*nằm trong dải\s*40[-—–]64\s*\(§6\.5\)\./gi, "纯净度得分 $1 处于 40–64 区间 (§6.5)。")
       .replace(/Không đủ nguồn geo\/ASN\/blacklist để kết luận sạch\./gi, "地理位置/ASN/黑名单数据源不足，无法得出纯净结论。")
-      .replace(/Bằng chứng đơn lẻ mạnh \(Spamhaus\/Tor\) chưa có nguồn thứ hai xác nhận - verdict tối đa Nghi ngờ \(§6\.5\)\./gi, "存在强单点证据 (Spamhaus/Tor) 但无第二源确认 — 最高判定为可疑 (§6.5)。")
-      .replace(/Nhiều nguồn độc lập cùng báo bẩn \(§6\.5\)\./gi, "多个独立数据源共同报告高危 (§6.5)。")
-      .replace(/Các nguồn không hoàn toàn đồng thuận\./gi, "各数据源未完全达成一致。")
-      .replace(/Chỉ 1 nguồn \(([^)]+)\) báo bẩn trong khi các nguồn khác sạch - chưa đủ để kết luận Bẩn, nhưng không thể coi là Tạm \(§6\.5\)\./gi, "仅 1 个源 ($1) 报告高危而其他源纯净 — 不足以判定为高危，但不能视为尚可 (§6.5)。")
-      .replace(/(\d+)\s+nguồn báo bẩn\s*\/\s*(\d+)\s+nguồn báo sạch trong khía cạnh\s+(.+?)(?=\.|$)/gi, "$1 个源报告高危 / $2 个源报告纯净（在 $3 方面）")
-      .replace(/Khía cạnh (.+?) trộn lẫn nghi ngờ và sạch/gi, "维度 $1 混合了可疑与纯净信号")
+      // Single hits & conflicts
+      .replace(/Có nguồn báo bẩn trong khi phần còn lại sạch\s*[-—–]\s*không kết luận sạch\s*\(§6\.5\)\.?/gi, "部分源报告恶意而其余源纯净 — 无法得出纯净结论 (§6.5)。")
+      .replace(/Bằng chứng đơn lẻ mạnh \(Spamhaus\/Tor\) chưa có nguồn thứ hai xác nhận\s*[-—–]\s*verdict tối đa Nghi ngờ\s*\(§6\.5\)\.?/gi, "存在强单点证据 (Spamhaus/Tor) 但无第二源确认 — 最高判定为可疑 (§6.5)。")
+      .replace(/Dính blacklist nghiêm trọng đã được xác nhận\.?/gi, "已确认命中严重黑名单。")
+      .replace(/Dính blacklist ở\s*[≥>=]+\s*2\s*nhóm\s*[-—–]\s*không thể Sạch\.?/gi, "命中 ≥2 个黑名单分组 — 无法判定为纯净。")
+      .replace(/Nhiều nguồn độc lập cùng báo bẩn\s*\(§6\.5\)\.?/gi, "多个独立数据源共同报告恶意 (§6.5)。")
+      .replace(/Các nguồn không hoàn toàn đồng thuận\.?/gi, "各数据源未完全达成一致。")
+      .replace(/Chỉ 1 nguồn \(([^)]+)\) báo bẩn trong khi các nguồn khác sạch\s*[-—–]\s*chưa đủ để kết luận Bẩn, nhưng không thể coi là Tạm\s*\(§6\.5\)\.?/gi, "仅 1 个源 ($1) 报告恶意而其他源纯净 — 不足以判定为恶意，但不能视为一般 (§6.5)。")
+      .replace(/Clean Score\s*<\s*40\s*\(§6\.5\)\.?/gi, "纯净度得分 < 40 (§6.5)。")
+      .replace(/\s*Nguồn lệch:\s*([^.]+)\./gi, " 偏差数据源: $1。")
+      // Quorum & data checks
+      .replace(/Chưa đủ dữ liệu:\s*thiếu quorum ở\s*(.+?)\s*[-—–]\s*không được kết luận/gi, "数据不足：缺少 $1 法定数据源 — 无法得出结论")
+      .replace(/Chưa đủ dữ liệu:\s*không có phiếu nào dùng được/gi, "数据不足：无可用评估数据")
+      .replace(/Verdict bị chặn bởi quorum thiếu:\s*(.+?)(?=\.|$|\s*\(§6\.3\))/gi, "判定因缺少法定数据源受阻: $1 (§6.3)")
+      .replace(/Thiếu quorum:\s*(\d+)\/(\d+)\s*phiếu\s*[-—–]\s*không được kết luận\s*\(§6\.3\)/gi, "缺少法定数量: $1/$2 票 — 无法得出结论 (§6.3)")
+      .replace(/Đủ quorum tối thiểu\s*\((\d+)\/(\d+)\),\s*còn thiếu nguồn phụ/gi, "达到最低法定数量 ($1/$2)，缺少辅助数据源")
+      .replace(/Đủ quorum\s*\((\d+)\/(\d+)\)/gi, "达到法定数量 ($1/$2)")
+      // Conflict messages
+      .replace(/(\d+)\s+nguồn báo bẩn\s*\/\s*(\d+)\s+nguồn báo sạch(?:\s+trong khía cạnh|\s+khía cạnh)?\s+([a-zA-Z0-9_-]+)/gi, "$1 个源报告恶意 / $2 个源报告纯净（在 $3 方面）")
+      .replace(/Khía cạnh\s+([a-zA-Z0-9_-]+)\s+trộn lẫn nghi ngờ và sạch/gi, "维度 $1 混合了可疑与纯净信号")
+      // Legacy / score ranges
       .replace(/Điểm Clean nằm trong khoảng Nghi ngờ \(25-69\)\./gi, "纯净度得分处于可疑区间 (25-69)。")
-      .replace(/Điểm Clean nằm trong khoảng Tạm \(70-84\)\./gi, "纯净度得分处于尚可区间 (70-84)。")
+      .replace(/Điểm Clean nằm trong khoảng Tạm \(70-84\)\./gi, "纯净度得分处于一般区间 (70-84)。")
       .replace(/Điểm Clean sạch \(>=85\)\./gi, "纯净度得分纯净 (>=85)。")
-      .replace(/Điểm Clean thấp \(<25\) nhưng chưa đủ đồng thuận để kết luận Bẩn\./gi, "纯净度得分低 (<25) 但尚未形成共识判定为高危。")
+      .replace(/Điểm Clean thấp \(<25\) nhưng chưa đủ đồng thuận để kết luận Bẩn\./gi, "纯净度得分低 (<25) 但尚未形成共识判定为恶意。")
       .replace(/Quorum thiếu:\s*(.+?)(?=\.|$)/gi, "缺少法定数据源: $1")
+      // Terms
+      .replace(/khía cạnh bắt buộc/gi, "必填评估维度")
       .replace(/Chưa đủ dữ liệu/gi, "数据不足")
       .replace(/Nghi ngờ/gi, "可疑")
-      .replace(/Tạm/gi, "尚可")
-      .replace(/Bẩn/gi, "高危")
+      .replace(/Tạm/gi, "一般")
+      .replace(/Bẩn/gi, "恶意")
       .replace(/Sạch/gi, "纯净");
-    return r;
+    return r.trim();
   }
 
   return r;
@@ -1475,6 +1515,9 @@ export function getLocalizedProviderReason(
       .replace(/Timezone:\s*các nguồn khớp/gi, "Timezone: sources match")
       .replace(/Timezone:\s*(\d+)\s*giá trị khác nhau/gi, "Timezone: $1 distinct values")
       // General errors & auth
+      .replace(/(\d+)\s+nguồn trả Unknown\s*\(timeout\/hết quota\/thiếu key\)\s*[-—–]\s*Confidence bị trừ/gi, "$1 source(s) returned Unknown (timeout/quota/missing key) — Confidence reduced")
+      .replace(/Không provider nào quyết định verdict:\s*trọng số mỗi provider\s*[≤<=]+\s*40%\s*khía cạnh\s*\(§6\.4\)/gi, "No provider determines verdict: max weight per provider ≤ 40% of aspect (§6.4)")
+      .replace(/Verdict bị chặn bởi quorum thiếu:\s*(.+?)(?=\.|$|\s*\(§6\.3\))/gi, "Verdict blocked due to missing quorum: $1 (§6.3)")
       .replace(/thiếu key hoặc bị ngắt/gi, "missing key or disconnected")
       .replace(/thiếu key/gi, "missing key")
       .replace(/hết quota/gi, "quota exhausted")
@@ -1563,6 +1606,9 @@ export function getLocalizedProviderReason(
       .replace(/Timezone:\s*các nguồn khớp/gi, "时区: 各数据源一致")
       .replace(/Timezone:\s*(\d+)\s*giá trị khác nhau/gi, "时区: 出现 $1 种不同值")
       // General errors & auth
+      .replace(/(\d+)\s+nguồn trả Unknown\s*\(timeout\/hết quota\/thiếu key\)\s*[-—–]\s*Confidence bị trừ/gi, "$1 个源返回未知 (超时/配额耗尽/缺少密钥) — 已扣减置信度")
+      .replace(/Không provider nào quyết định verdict:\s*trọng số mỗi provider\s*[≤<=]+\s*40%\s*khía cạnh\s*\(§6\.4\)/gi, "无单一服务商主导判定：单个服务商权重 ≤ 维度的 40% (§6.4)")
+      .replace(/Verdict bị chặn bởi quorum thiếu:\s*(.+?)(?=\.|$|\s*\(§6\.3\))/gi, "判定因缺少法定数据源受阻: $1 (§6.3)")
       .replace(/thiếu key hoặc bị ngắt/gi, "缺少密钥或已断开")
       .replace(/thiếu key/gi, "缺少密钥")
       .replace(/hết quota/gi, "配额耗尽")

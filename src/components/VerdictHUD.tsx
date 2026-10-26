@@ -258,7 +258,7 @@ export function VerdictHUD({
           {quorumMissing.length > 0 ? (
             <span
               className="chip chip--unknown"
-              title={`${lang === "en" ? "Missing quorum: " : lang === "zh" ? "缺少法定数据源: " : "Thiếu quorum: "}${quorumMissing.join(", ")}`}
+              title={`${lang === "en" ? "Missing quorum: " : lang === "zh" ? "缺少法定数据源: " : "Thiếu quorum: "}${quorumMissing.map((q) => getLocalizedAspectLabel(q, lang)).join(", ")}`}
             >
               {t("verdict.missing_quorum")}
             </span>

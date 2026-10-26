@@ -48,6 +48,10 @@ $ManifestPath = Join-Path $ProjectRoot 'package.json'
 # rustup installs into %USERPROFILE%\.cargo\bin which is frequently NOT on PATH
 # inside non-login shells (CI, agent sandboxes, fresh PowerShell). Prepend it.
 $CargoBin = Join-Path $env:USERPROFILE '.cargo\bin'
+if (-not (Test-Path -LiteralPath $CargoBin)) {
+    $fallbackCargo = 'C:\Users\unknown-user\.cargo\bin'
+    if (Test-Path -LiteralPath $fallbackCargo) { $CargoBin = $fallbackCargo }
+}
 if (Test-Path -LiteralPath $CargoBin) {
     $env:PATH = "$CargoBin;$env:PATH"
 }
