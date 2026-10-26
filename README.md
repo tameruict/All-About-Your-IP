@@ -43,13 +43,22 @@ Most online IP checking websites suffer from three fundamental flaws:
 
 ## 📸 Screenshots
 
-| Clean IP Inspection (HUD) | Live Proxy Check & Leak Detection |
-|:---:|:---:|
-| ![Clean IP View](docs/screenshots/01-ip-only-exe.png) | ![Proxy Check](docs/screenshots/02a-proxy-check-exe.png) |
+### 1. Terminal Overview & Clean Score HUD
+> Real-time composite Clean Score (0–100), confidence percentage, quorum verdict, and multi-module scanning status.
 
-| Consensus & Quorum Enforcement | Audit Log & Evidence Export |
-|:---:|:---:|
-| ![Quorum Limits](docs/screenshots/02b-quorum-limits.png) | ![Export Evidence](docs/screenshots/04-export-ok.png) |
+![Terminal Overview & Clean Score HUD](docs/screenshots/01-dashboard-hud.png)
+
+### 2. Multi-Source Intelligence & Deep Inspection
+> Multi-source geolocation triangulation with distance deviation alerts, consensus reputation votes, real-time DNSBL blacklists (21+ zones), and ICMP network diagnostics.
+
+![Multi-Source Deep Inspection](docs/screenshots/02-detailed-analysis.png)
+
+### 3. Settings & Encrypted Credential Vault
+> Direct integration with Windows Credential Manager for API keys, granular DNSBL group configuration, concurrency controls, and local audit export settings.
+
+<p align="center">
+  <img src="docs/screenshots/03-settings-credentials.png" alt="Settings & Encrypted Credential Vault" width="680" />
+</p>
 
 ---
 

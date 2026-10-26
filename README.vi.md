@@ -43,13 +43,22 @@ Hầu hết các trang web kiểm tra IP hiện nay đều mắc phải 3 như�
 
 ## 📸 Hình ảnh giao diện ứng dụng
 
-| Chế độ kiểm tra IP (HUD) | Chế độ Proxy & Phát hiện rò rỉ |
-|:---:|:---:|
-| ![Clean IP View](docs/screenshots/01-ip-only-exe.png) | ![Proxy Check](docs/screenshots/02a-proxy-check-exe.png) |
+### 1. Giao diện Terminal & Điểm Clean Score HUD
+> Điểm Clean Score tổng hợp (0–100), tỷ lệ độ tin cậy, kết luận đồng thuận (Verdict), và tiến độ quét thời gian thực qua 13 module.
 
-| Cơ chế kiểm phiếu Quorum & Đồng thuận | Xuất báo cáo chứng cứ (Audit Trail) |
-|:---:|:---:|
-| ![Quorum Limits](docs/screenshots/02b-quorum-limits.png) | ![Export Evidence](docs/screenshots/04-export-ok.png) |
+![Giao diện Terminal & Điểm Clean Score HUD](docs/screenshots/01-dashboard-hud.png)
+
+### 2. Phân tích đa nguồn chuyên sâu & Chẩn đoán DNSBL
+> Tam giác vị trí địa lý với cảnh báo độ lệch khoảng cách, đối soát uy tín đa nguồn, kiểm tra 21+ danh sách đen DNSBL thời gian thực, và chẩn đoán mạng ICMP.
+
+![Phân tích đa nguồn chuyên sâu](docs/screenshots/02-detailed-analysis.png)
+
+### 3. Cài đặt bảo mật & Quản lý API Key (Windows Credential Manager)
+> Lưu trữ mã khóa API trực tiếp vào Windows Credential Manager bảo mật, tùy chỉnh nhóm DNSBL, giới hạn luồng đồng thời và thư mục xuất báo cáo kiểm toán.
+
+<p align="center">
+  <img src="docs/screenshots/03-settings-credentials.png" alt="Cài đặt & Quản lý API Key" width="680" />
+</p>
 
 ---
 

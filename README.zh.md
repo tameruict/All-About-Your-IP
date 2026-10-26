@@ -43,13 +43,22 @@
 
 ## 📸 运行截图
 
-| 纯净 IP 综合仪表盘 (HUD) | 代理模式与泄漏深度探测 |
-|:---:|:---:|
-| ![Clean IP View](docs/screenshots/01-ip-only-exe.png) | ![Proxy Check](docs/screenshots/02a-proxy-check-exe.png) |
+### 1. 终端总览与纯净度评分 (Clean Score HUD)
+> 实时综合纯净度评分 (0–100)、置信度百分比、仲裁法定结论与 13 大模块扫描进度跟踪。
 
-| 仲裁法定人数与共识审计 | 证据链与审计报告导出 |
-|:---:|:---:|
-| ![Quorum Limits](docs/screenshots/02b-quorum-limits.png) | ![Export Evidence](docs/screenshots/04-export-ok.png) |
+![终端总览与评分 HUD](docs/screenshots/01-dashboard-hud.png)
+
+### 2. 多源深度情报交叉比对与 DNSBL 诊断
+> 地理位置多源交叉三角定位与距离偏差预警、信誉评分仲裁、21+ 权威 DNSBL 黑名单实时查验与 ICMP 网络诊断。
+
+![多源深度情报交叉比对](docs/screenshots/02-detailed-analysis.png)
+
+### 3. 系统设置与凭据加密存储 (Windows Credential Manager)
+> 结合 Windows 凭据管理器进行 API 密钥本地安全加密存储、DNSBL 分组启闭、并发上限及审计报告导出路径配置。
+
+<p align="center">
+  <img src="docs/screenshots/03-settings-credentials.png" alt="系统设置与 API 密钥管理" width="680" />
+</p>
 
 ---
 
