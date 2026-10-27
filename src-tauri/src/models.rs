@@ -38,6 +38,23 @@ pub enum Category {
     LocalDb,
 }
 
+impl Category {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Category::Geo => "geo",
+            Category::Asn => "asn",
+            Category::Fraud => "fraud",
+            Category::Abuse => "abuse",
+            Category::ThreatIntel => "threat_intel",
+            Category::Blacklist => "blacklist",
+            Category::Network => "network",
+            Category::Leak => "leak",
+            Category::Speed => "speed",
+            Category::LocalDb => "local_db",
+        }
+    }
+}
+
 /// §6.1 normalised provider verdict.
 ///
 /// Deliberately PascalCase: spec §6.6 shows `"signal": "Clean"`.
@@ -738,8 +755,6 @@ pub struct FullCheckResult {
     pub clean_score: Option<f64>,
     #[serde(default)]
     pub clean_score_provisional: bool,
-    #[serde(default)]
-    pub clean_score_is_provisional: bool,
     pub confidence_score: f64,
     pub verdict: Verdict,
     pub verdict_reason: String,
@@ -798,8 +813,7 @@ impl FullCheckResult {
             ip,
             mode: CheckMode::Unknown,
             clean_score: None,
-            clean_score_provisional: true,
-            clean_score_is_provisional: true,
+            clean_score_provisional: false,
             confidence_score: 0.0,
             verdict: Verdict::ChưaĐủDữLiệu,
             verdict_reason: reason.clone(),

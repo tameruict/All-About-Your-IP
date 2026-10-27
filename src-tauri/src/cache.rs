@@ -370,8 +370,7 @@ impl Cache {
         result.clean_score = clean_score.map(|s| s as f64);
         result.confidence_score = confidence_score.unwrap_or(0) as f64;
         result.verdict = verdict.as_deref().and_then(verdict_from_str).unwrap_or_default();
-        result.clean_score_provisional = result.verdict.is_inconclusive();
-        result.clean_score_is_provisional = result.verdict.is_inconclusive();
+        result.clean_score_provisional = result.verdict.is_inconclusive() && result.clean_score.is_some();
         result.verdict_reason = verdict_reason.unwrap_or_default();
         result.checked_at = checked_at;
         result.from_cache = true;
@@ -668,18 +667,7 @@ fn protocol_from_str(value: &str) -> Option<ProxyProtocol> {
 }
 
 fn category_str(category: Category) -> &'static str {
-    match category {
-        Category::Geo => "geo",
-        Category::Asn => "asn",
-        Category::Fraud => "fraud",
-        Category::Abuse => "abuse",
-        Category::ThreatIntel => "threat_intel",
-        Category::Blacklist => "blacklist",
-        Category::Network => "network",
-        Category::Leak => "leak",
-        Category::Speed => "speed",
-        Category::LocalDb => "local_db",
-    }
+    category.as_str()
 }
 
 fn category_from_str(value: &str) -> Category {

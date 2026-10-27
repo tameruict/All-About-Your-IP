@@ -343,10 +343,12 @@ fn evaluate_vote_aspect(
     let quorum_met = votes_count >= required;
 
     let score = aspect_score(&effective, |v| {
+        let cat_str = v.category.as_str();
+        let up_lower = v.upstream.to_ascii_lowercase();
         registry_weights
-            .get(&format!("{}::{}", v.category as u8 as char, v.upstream))
+            .get(&format!("{cat_str}::{up_lower}"))
             .copied()
-            .or_else(|| registry_weights.get(&v.upstream).copied())
+            .or_else(|| registry_weights.get(&up_lower).copied())
             .unwrap_or(MAX_PROVIDER_SHARE)
     });
 
@@ -725,18 +727,16 @@ pub fn decide_verdict(inputs: &VerdictInputs) -> (Verdict, String) {
         );
     }
 
-    // §6.5 — a lone strong hit (Spamhaus ZEN / Tor exit) is capped.
+    // §6.5 — a lone strong hit (Spamhaus ZEN / Tor exit) is capped; confirmed escalates to Bẩn (§6.3).
     if inputs.strong_single_hit {
         if !inputs.independent_confirmation {
             verdict = demote(verdict, Verdict::NghiNgờ);
             reason.push_str(
                 "Bằng chứng đơn lẻ mạnh (Spamhaus/Tor) chưa có nguồn thứ hai xác nhận — verdict tối đa Nghi ngờ (§6.5). ",
             );
-        } else if verdict == Verdict::Sạch || verdict == Verdict::Tạm {
-            // Confirmed but the score was dragged up by weaker aspects: a
-            // confirmed hard listing can never be "Sạch".
-            verdict = Verdict::NghiNgờ;
-            reason.push_str("Dính blacklist nghiêm trọng đã được xác nhận. ");
+        } else {
+            verdict = Verdict::Bẩn;
+            reason.push_str("Dính blacklist nghiêm trọng (Spamhaus/Tor) đã được xác nhận độc lập (§6.3, §6.5). ");
         }
     } else if inputs.blacklist_groups_listed >= 2 && verdict == Verdict::Sạch {
         verdict = Verdict::Tạm;
@@ -938,7 +938,49 @@ pub fn usable_votes(evidence: &[ProviderEvidence], category: Category) -> u32 {
 
 /// Expected number of voices, used as the confidence denominator (§6.4).
 ///
-/// `blacklist` counts groups (4 max), not zones, because a group is one vote.
+/// Dynamic expected votes calculation based on enabled providers and satisfied API keys.
+pub fn expected_votes_for(
+    registry: &crate::providers::registry::Registry,
+    settings: &crate::models::Settings,
+) -> u32 {
+    let mut fraud_upstreams = std::collections::HashSet::new();
+    let mut asn_upstreams = std::collections::HashSet::new();
+    let mut abuse_upstreams = std::collections::HashSet::new();
+
+    for p in &registry.providers {
+        let enabled = crate::orchestrator::is_provider_enabled(&p.id, registry, settings);
+        let key_ok = !p.requires_key || crate::config::has_api_key(&p.id);
+        if enabled && key_ok {
+            match p.category {
+                Category::Fraud => { fraud_upstreams.insert(p.upstream.clone()); },
+                Category::Asn => { asn_upstreams.insert(p.upstream.clone()); },
+                Category::Abuse => { abuse_upstreams.insert(p.upstream.clone()); },
+                _ => {}
+            }
+        }
+    }
+
+    let fraud_count = (fraud_upstreams.len() as u32).min(2);
+    let asn_count = (asn_upstreams.len() as u32).min(2);
+    let abuse_count = (abuse_upstreams.len() as u32).min(1);
+
+    let blacklist_count = if settings.dnsbl_enabled {
+        let active_groups = settings
+            .dnsbl_groups
+            .iter()
+            .filter(|g| g.enabled)
+            .count() as u32;
+        active_groups.min(4)
+    } else {
+        0
+    };
+
+    let consistency_count = 3;
+
+    (fraud_count + blacklist_count + asn_count + abuse_count + consistency_count).max(1)
+}
+
+/// Blacklist counts groups (4 max), not zones, because a group is one vote.
 pub fn expected_votes() -> u32 {
     let mut total = 0;
     for (aspect, _) in WEIGHTS.iter() {
@@ -974,6 +1016,17 @@ pub fn score_with_expected(
     evidence: &[ProviderEvidence],
     registry_weights: &HashMap<String, f64>,
     dnsbl_override: Option<&DnsblResult>,
+) -> ScoringResult {
+    score_with_expected_votes(result, evidence, registry_weights, dnsbl_override, expected_votes())
+}
+
+/// Full scoring pass with dynamic expected votes override.
+pub fn score_with_expected_votes(
+    result: &FullCheckResult,
+    evidence: &[ProviderEvidence],
+    registry_weights: &HashMap<String, f64>,
+    dnsbl_override: Option<&DnsblResult>,
+    expected_total: u32,
 ) -> ScoringResult {
     let votes = group_votes(evidence);
 
@@ -1103,7 +1156,7 @@ pub fn score_with_expected(
         }
     }
 
-    let confidence = confidence_score(&aspects, evidence, expected_votes());
+    let confidence = confidence_score(&aspects, evidence, expected_total);
 
     let mut notes = Vec::new();
     if !quorum_ok {
@@ -1163,8 +1216,21 @@ fn strong_hit_analysis(
     let tor_hit = votes.iter().any(|v| {
         v.category == Category::Blacklist
             && v.signal != Signal::Clean
-            && (v.upstream == "tor-project" || v.providers.iter().any(|p| p.contains("tor")))
-    }) || result
+            && (v.upstream == "tor-project" || v.providers.iter().any(|p| p == "tor_exit_dan" || p == "tor_project"))
+    }) || dnsbl.map(|d| d.groups.iter().any(|g| {
+        g.answered && g.signal != Signal::Clean && g.entries.iter().any(|e| e.listed && (e.provider == "tor_exit_dan" || e.zone.contains("tor.dan.me.uk")))
+    })).unwrap_or(false)
+       || result.evidence.iter().any(|e| {
+           e.category == Category::Blacklist && e.signal != Signal::Clean && e.raw.as_ref().map(|r| {
+               r.get("zones_hit").and_then(|z| z.as_array()).map(|arr| arr.iter().any(|item| item.as_str() == Some("tor_exit_dan"))).unwrap_or(false)
+           }).unwrap_or(false)
+       })
+       || result.evidence.iter().any(|e| {
+           e.category == Category::Fraud && e.signal == Signal::Bad && e.raw.as_ref().map(|r| {
+               r.get("is_tor").and_then(|v| v.as_bool()).unwrap_or(false) || r.get("tor").and_then(|v| v.as_bool()).unwrap_or(false)
+           }).unwrap_or(false)
+       })
+       || result
         .asn
         .as_ref()
         .map(|a| a.flags.tor)
@@ -1216,11 +1282,37 @@ fn strong_hit_analysis(
 
 /// Build the `upstream → weight` map the scoring pass expects.
 pub fn weight_lookup(registry: &crate::providers::registry::Registry) -> HashMap<String, f64> {
-    registry
-        .providers
-        .iter()
-        .map(|p| (p.upstream.clone(), p.sanitised_weight()))
-        .collect()
+    let mut map = HashMap::new();
+    for p in &registry.providers {
+        let w = p.sanitised_weight();
+        let cat_str = p.category.as_str();
+        let upstream = p.upstream.to_ascii_lowercase();
+        let id = p.id.to_ascii_lowercase();
+
+        map.entry(format!("{cat_str}::{upstream}"))
+            .and_modify(|e: &mut f64| *e = e.max(w))
+            .or_insert(w);
+
+        map.entry(format!("{cat_str}::{id}"))
+            .and_modify(|e: &mut f64| *e = e.max(w))
+            .or_insert(w);
+
+        if p.category == Category::Blacklist {
+            if let Some(grp) = p.group.as_deref() {
+                if !grp.trim().is_empty() {
+                    let grp_lower = grp.trim().to_ascii_lowercase();
+                    map.entry(format!("blacklist::{grp_lower}"))
+                        .and_modify(|e: &mut f64| *e = e.max(w))
+                        .or_insert(w);
+                }
+            }
+        }
+
+        map.entry(upstream)
+            .and_modify(|e: &mut f64| *e = e.max(w))
+            .or_insert(w);
+    }
+    map
 }
 
 // ---------------------------------------------------------------------------
@@ -2014,5 +2106,65 @@ mod tests {
         let res_flags = crate::models::IpFlags::default();
         let res_score = apply_anti_bot_profile(95.0, Some(&res_flags), crate::models::IpType::Residential);
         assert_eq!(res_score, 95.0, "Residential sạch giữ nguyên điểm");
+    }
+
+    #[test]
+    fn quorum_fail_retains_provisional_clean_score() {
+        let result = base_result();
+        // only 1 fraud provider, missing quorum (< 2)
+        let evs = vec![
+            ev("ipqualityscore", Category::Fraud, "ipqualityscore", Signal::Clean),
+        ];
+        let weights = registry_weights();
+        let scored = score(&result, &evs, &weights);
+        assert_eq!(scored.verdict, Verdict::ChưaĐủDữLiệu);
+        assert!(scored.clean_score.is_some(), "phải giữ clean_score tạm tính");
+    }
+
+    #[test]
+    fn spamhaus_confirmed_escalates_to_ban() {
+        let result = base_result();
+        let mut evs = full_clean_evidence();
+        // Add Spamhaus ZEN bad
+        if let Some(pos) = evs.iter().position(|e| e.provider == "spamhaus_zen") {
+            evs[pos].signal = Signal::Bad;
+        }
+        // Add another bad blacklist group (barracuda) to independently confirm
+        if let Some(pos) = evs.iter().position(|e| e.provider == "barracuda") {
+            evs[pos].signal = Signal::Bad;
+        }
+        let weights = registry_weights();
+        let scored = score(&result, &evs, &weights);
+        assert_eq!(scored.verdict, Verdict::Bẩn, "Spamhaus xác nhận đa nguồn phải thành Bẩn");
+    }
+
+    #[test]
+    fn spamhaus_unconfirmed_capped_at_nghi_ngo() {
+        let result = base_result();
+        let mut evs = full_clean_evidence();
+        // Add Spamhaus ZEN bad, but all other groups remain clean
+        if let Some(pos) = evs.iter().position(|e| e.provider == "spamhaus_zen") {
+            evs[pos].signal = Signal::Bad;
+        }
+        let weights = registry_weights();
+        let scored = score(&result, &evs, &weights);
+        assert_eq!(scored.verdict, Verdict::NghiNgờ, "Spamhaus đơn lẻ chưa xác nhận chỉ tối đa Nghi ngờ");
+    }
+
+    #[test]
+    fn tor_exit_confirmed_escalates_to_ban() {
+        let mut result = base_result();
+        result.asn = Some(crate::models::AsnResult {
+            flags: crate::models::IpFlags { tor: true, ..Default::default() },
+            ..Default::default()
+        });
+        let mut evs = full_clean_evidence();
+        // Corroborating bad signal from abuse
+        if let Some(pos) = evs.iter().position(|e| e.provider == "abuseipdb") {
+            evs[pos].signal = Signal::Bad;
+        }
+        let weights = registry_weights();
+        let scored = score(&result, &evs, &weights);
+        assert_eq!(scored.verdict, Verdict::Bẩn, "Tor exit có xác nhận phải kết luận Bẩn");
     }
 }

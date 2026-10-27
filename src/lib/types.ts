@@ -479,6 +479,7 @@ export interface QuorumStatus {
 /** Full scoring output. Embedded in FullCheckResult. */
 export interface ScoringResult {
   clean_score: number | null;
+  clean_score_provisional?: boolean;
   confidence_score: number;
   verdict: Verdict;
   verdict_reason: string;
@@ -590,6 +591,7 @@ export interface FullCheckResult {
   ip: string;
   mode: CheckMode;
   clean_score: number | null;
+  clean_score_provisional?: boolean;
   confidence_score: number;
   verdict: Verdict;
   verdict_reason: string;

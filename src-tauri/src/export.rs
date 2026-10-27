@@ -440,7 +440,13 @@ pub fn summary_text(result: &FullCheckResult) -> String {
             verdict = result.verdict.as_str(),
             clean = result
                 .clean_score
-                .map(|s| format!("{s:.0}"))
+                .map(|s| {
+                    if result.clean_score_provisional {
+                        format!("{s:.0} [tạm tính]")
+                    } else {
+                        format!("{s:.0}")
+                    }
+                })
                 .unwrap_or_else(|| "—".to_string()),
             conf = format!("{:.0}%", result.confidence_score),
         ),

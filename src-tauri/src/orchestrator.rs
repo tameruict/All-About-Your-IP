@@ -1463,7 +1463,8 @@ async fn run_check_inner(
     state.mark(ModuleId::Scoring, ModuleStatus::Running, "Đang tổng hợp điểm");
     result.evidence = all_evidence.clone();
     let weights = scoring::weight_lookup(&registry);
-    let scored = scoring::score(&result, &all_evidence, &weights);
+    let expected = scoring::expected_votes_for(&registry, &settings);
+    let scored = scoring::score_with_expected_votes(&result, &all_evidence, &weights, result.dnsbl.as_ref(), expected);
     result.clean_score = scored.clean_score;
     result.confidence_score = scored.confidence_score;
     result.verdict = scored.verdict;
@@ -1475,8 +1476,7 @@ async fn run_check_inner(
     let inconclusive = scored.verdict.is_inconclusive();
     let public_clean_score = scored.clean_score;
     result.clean_score = public_clean_score;
-    result.clean_score_provisional = inconclusive;
-    result.clean_score_is_provisional = inconclusive;
+    result.clean_score_provisional = inconclusive && public_clean_score.is_some();
 
     state.mark(
         ModuleId::Scoring,
@@ -1502,8 +1502,7 @@ async fn run_check_inner(
         Some(serde_json::json!({
             "verdict": scored.verdict.as_str(),
             "clean_score": public_clean_score,
-            "clean_score_provisional": inconclusive,
-            "clean_score_is_provisional": inconclusive,
+            "clean_score_provisional": result.clean_score_provisional,
             "confidence": scored.confidence_score,
             "confidence_score": scored.confidence_score,
             "verdict_reason": scored.verdict_reason,
@@ -1720,8 +1719,13 @@ fn collect_asn_records(asn_evidence: &[ProviderEvidence]) -> Vec<crate::models::
                 .map(|s| s.to_string()),
             organisation: raw
                 .get("organisation")
+                .or_else(|| raw.get("organization"))
                 .or_else(|| raw.get("org"))
+                .or_else(|| raw.get("holder"))
+                .or_else(|| raw.get("as_name"))
+                .or_else(|| raw.get("asname"))
                 .and_then(|v| v.as_str())
+                .filter(|s| !s.trim().is_empty())
                 .map(|s| s.to_string()),
             prefix: raw
                 .get("prefix")
@@ -1754,6 +1758,7 @@ fn supplement_asn_from_geo(
             continue;
         }
         let Some(raw) = evidence.raw.as_ref() else { continue };
+        let mut parsed_as_name: Option<String> = None;
         let asn = raw
             .get("asn")
             .and_then(|v| v.as_u64())
@@ -1763,12 +1768,19 @@ fn supplement_asn_from_geo(
                     .or_else(|| raw.get("as"))
                     .and_then(|v| v.as_str())
                     .and_then(|s| {
-                        let token = s.split_whitespace().next().unwrap_or(s);
-                        token
+                        let mut parts = s.splitn(2, char::is_whitespace);
+                        let first = parts.next().unwrap_or(s);
+                        let num = first
                             .trim_start_matches("AS")
                             .trim_start_matches("as")
                             .parse::<u32>()
-                            .ok()
+                            .ok();
+                        if let Some(rest) = parts.next() {
+                            if !rest.trim().is_empty() {
+                                parsed_as_name = Some(rest.trim().to_string());
+                            }
+                        }
+                        num
                     })
             });
         let asn_name = raw
@@ -1780,7 +1792,8 @@ fn supplement_asn_from_geo(
             .or_else(|| raw.get("org"))
             .and_then(|v| v.as_str())
             .filter(|s| !s.trim().is_empty())
-            .map(|s| s.to_string());
+            .map(|s| s.to_string())
+            .or_else(|| parsed_as_name.clone());
         if asn.is_none() && asn_name.is_none() {
             continue;
         }
@@ -1790,10 +1803,13 @@ fn supplement_asn_from_geo(
             asn_name,
             organisation: raw
                 .get("organisation")
+                .or_else(|| raw.get("organization"))
                 .or_else(|| raw.get("org"))
                 .or_else(|| raw.get("isp"))
                 .and_then(|v| v.as_str())
-                .map(|s| s.to_string()),
+                .filter(|s| !s.trim().is_empty())
+                .map(|s| s.to_string())
+                .or(parsed_as_name),
             prefix: None,
             rir_country: raw
                 .get("country_code")
@@ -1915,9 +1931,12 @@ fn collect_ip_flags(evidence: &[ProviderEvidence]) -> IpFlags {
 
 fn first_isp(asn_evidence: &[ProviderEvidence]) -> Option<String> {
     asn_evidence.iter().find_map(|e| {
-        e.raw
-            .as_ref()?
-            .get("isp")
+        let raw = e.raw.as_ref()?;
+        raw.get("isp")
+            .or_else(|| raw.get("org"))
+            .or_else(|| raw.get("organisation"))
+            .or_else(|| raw.get("asn_name"))
+            .or_else(|| raw.get("asname"))
             .and_then(|v| v.as_str())
             .filter(|s| !s.trim().is_empty())
             .map(|s| s.to_string())
@@ -1933,6 +1952,9 @@ fn first_isp_from_evidence(
             let raw = e.raw.as_ref()?;
             raw.get("isp")
                 .or_else(|| raw.get("org"))
+                .or_else(|| raw.get("organisation"))
+                .or_else(|| raw.get("asname"))
+                .or_else(|| raw.get("asn_name"))
                 .and_then(|v| v.as_str())
                 .filter(|s| !s.trim().is_empty())
                 .map(|s| s.to_string())
@@ -2085,28 +2107,19 @@ pub fn hydrate_cached_result(result: &mut FullCheckResult) {
 
     if result.scoring.is_none() {
         let registry = config::load_registry();
+        let settings = config::load_settings();
         let weights = scoring::weight_lookup(&registry);
-        let scored = scoring::score(result, &result.evidence, &weights);
+        let expected = scoring::expected_votes_for(&registry, &settings);
+        let scored = scoring::score_with_expected_votes(result, &result.evidence, &weights, result.dnsbl.as_ref(), expected);
+        result.clean_score = scored.clean_score;
+        result.clean_score_provisional = scored.verdict.is_inconclusive() && scored.clean_score.is_some();
         result.scoring = Some(scored);
     }
 }
 
 /// Stable string label for a category (used in `GeoPoint::source_kind`).
-///
-/// `models::Category` has no `as_str`, so the mapping lives here.
 pub fn category_kind(category: Category) -> &'static str {
-    match category {
-        Category::Geo => "geo",
-        Category::LocalDb => "local_db",
-        Category::Asn => "asn",
-        Category::Fraud => "fraud",
-        Category::Abuse => "abuse",
-        Category::ThreatIntel => "threat_intel",
-        Category::Blacklist => "blacklist",
-        Category::Network => "network",
-        Category::Leak => "leak",
-        Category::Speed => "speed",
-    }
+    category.as_str()
 }
 
 /// Project the DNSBL result into per-group `ProviderEvidence` rows.
@@ -2652,8 +2665,7 @@ mod tests {
         // Apply the same rule the orchestrator applies before publishing.
         let inconclusive = scored.verdict.is_inconclusive();
         result.clean_score = scored.clean_score;
-        result.clean_score_provisional = inconclusive;
-        result.clean_score_is_provisional = inconclusive;
+        result.clean_score_provisional = inconclusive && result.clean_score.is_some();
         result.verdict = scored.verdict;
         result.scoring = Some(scored);
 
@@ -2665,10 +2677,6 @@ mod tests {
         assert!(
             result.clean_score_provisional,
             "clean_score_provisional phải là true khi verdict chưa đủ dữ liệu"
-        );
-        assert!(
-            result.clean_score_is_provisional,
-            "clean_score_is_provisional phải là true khi verdict chưa đủ dữ liệu"
         );
 
         // And the wire format carries both clean_score and clean_score_provisional.

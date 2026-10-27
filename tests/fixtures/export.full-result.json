@@ -5,6 +5,7 @@
   "ip": "8.8.8.8",
   "mode": "ip_only",
   "clean_score": 82,
+  "clean_score_provisional": false,
   "confidence_score": 91,
   "verdict": "Tạm",
   "verdict_reason": "Dính 1 DNSBL cộng đồng, các nguồn fraud còn lại sạch",

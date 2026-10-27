@@ -1,34 +1,34 @@
-# IP Checker â€” provider registry (spec Â§5.1, Â§5.2, Â§5.3, Â§5.5)
+# IP Checker — provider registry (spec §5.1, §5.2, §5.3, §5.5)
 #
 # THIS FILE CONTAINS NO KEYS. API keys live in Windows Credential Manager
-# (service "com.ipchecker.app", account = provider id). See spec Â§2.1 / Â§11.
+# (service "com.ipchecker.app", account = provider id). See spec §2.1 / §11.
 #
-# Field contract (Â§5.5):
+# Field contract (§5.5):
 #   id                  registry id, must equal the `pub const ID` in the adapter
 #   category            geo | asn | fraud | abuse | threat_intel | blacklist | network | leak | speed | local_db
-#   upstream            root data source â€” votes are de-duplicated by upstream+category (Â§6.2)
+#   upstream            root data source — votes are de-duplicated by upstream+category (§6.2)
 #   method              api | dns | bgp | local_db
 #   requires_key        true => skipped with skip_reason=missing_key when no key is stored
-#   weight_in_category  share of the category weight BEFORE health decay; â‰¤ 0.40 (Â§6.4)
-#   timeout_ms          5000â€“8000 (Â§4.3)
+#   weight_in_category  share of the category weight BEFORE health decay; ≤ 0.40 (§6.4)
+#   timeout_ms          5000–8000 (§4.3)
 #   rate_limit          requests/minute for the free tier; 0 = unknown/unlimited
 #   enabled_by_default  run out of the box without any configuration
-#   thresholds          Â§6.1 normalisation in the provider's OWN scale:
-#                         raw < clean_below          â†’ Signal::Clean
-#                         clean_below..bad_above     â†’ Signal::Suspicious
-#                         raw > bad_above            â†’ Signal::Bad
-#   zone                DNSBL only â€” queried as <reversed-ip>.<zone>
-#   group               DNSBL only â€” spamhaus | commercial | community | specialist
-#   listed_verdict      DNSBL only â€” bad | suspicious (Â§6.1 / Â§6.5)
+#   thresholds          §6.1 normalisation in the provider's OWN scale:
+#                         raw < clean_below          → Signal::Clean
+#                         clean_below..bad_above     → Signal::Suspicious
+#                         raw > bad_above            → Signal::Bad
+#   zone                DNSBL only — queried as <reversed-ip>.<zone>
+#   group               DNSBL only — spamhaus | commercial | community | specialist
+#   listed_verdict      DNSBL only — bad | suspicious (§6.1 / §6.5)
 #
-# A group is ONE vote no matter how many zones it holds (Â§5.3).
+# A group is ONE vote no matter how many zones it holds (§5.3).
 
 version: "1.0.0"
 updated_at: "2026-10-25"
 
 providers:
   # ===================================================================
-  # Â§5.1 â€” GEO (API)
+  # §5.1 — GEO (API)
   # ===================================================================
   - id: ip_api
     category: geo
@@ -40,7 +40,7 @@ providers:
     requires_key: false
     weight_in_category: 0.30
     timeout_ms: 5000
-    rate_limit: 45          # Â§5.1: 45 req/phÃºt on the free tier
+    rate_limit: 45          # §5.1: 45 req/phút on the free tier
     enabled_by_default: true
 
   - id: ipwho
@@ -63,16 +63,16 @@ providers:
     status: "real"
     upstream: ipinfo
     method: api
-    requires_key: true     # free token, 50k/month â€” optional, never blocks a verdict
+    requires_key: true     # free token, 50k/month — optional, never blocks a verdict
     weight_in_category: 0.20
     timeout_ms: 6000
     rate_limit: 0
     enabled_by_default: true
 
   # ===================================================================
-  # Â§5.1 / Â§7.3 â€” GEO (local DB, bundled, offline)
+  # §5.1 / §7.3 — GEO (local DB, bundled, offline)
   # Votes are de-duplicated by upstream, so MaxMind-family DBs collapse
-  # into one vote even when three of them are installed (Â§6.2).
+  # into one vote even when three of them are installed (§6.2).
   # ===================================================================
   - id: maxmind_geolite2_city
     category: local_db
@@ -88,7 +88,7 @@ providers:
     enabled_by_default: false   # requires the .mmdb file to be present
     db_name: GeoLite2-City
     db_update_url: "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-City&license_key=KEY&suffix=tar.gz"
-    stale_after_days: 60        # Â§7.3 â€” older than 60 days â‡’ confidence penalty
+    stale_after_days: 60        # §7.3 — older than 60 days ⇒ confidence penalty
 
   - id: maxmind_geolite2_country
     category: local_db
@@ -136,7 +136,7 @@ providers:
     stale_after_days: 60
 
   # ===================================================================
-  # Â§5.1 / Â§7.4 â€” ASN, prefix, RIR (independent of geo databases)
+  # §5.1 / §7.4 — ASN, prefix, RIR (independent of geo databases)
   # ===================================================================
   - id: ripestat
     category: asn
@@ -170,7 +170,7 @@ providers:
     adapter_file: "providers/team_cymru.rs"
     status: "real"
     upstream: team-cymru
-    method: dns              # origin.asn.cymru.com â€” no HTTP API (Â§5.1)
+    method: dns              # origin.asn.cymru.com — no HTTP API (§5.1)
     requires_key: false
     weight_in_category: 0.30
     timeout_ms: 5000
@@ -178,9 +178,9 @@ providers:
     enabled_by_default: true
 
   # ===================================================================
-  # Â§5.2 â€” FRAUD / PROXY / VPN
-  # Quorum: â‰¥2 primary fraud votes with a non-Unknown signal, else the
-  # verdict is capped at "ChÆ°a Ä‘á»§ dá»¯ liá»‡u" (Â§6.3).
+  # §5.2 — FRAUD / PROXY / VPN
+  # Quorum: ≥2 primary fraud votes with a non-Unknown signal, else the
+  # verdict is capped at "Chưa đủ dữ liệu" (§6.3).
   # ===================================================================
   - id: ipqualityscore
     category: fraud
@@ -195,7 +195,7 @@ providers:
     rate_limit: 0
     enabled_by_default: true
     thresholds:
-      clean_below: 25        # Â§6.1 example â€” verify against current IPQS docs
+      clean_below: 25        # §6.1 example — verify against current IPQS docs
       bad_above: 75
 
   - id: proxycheck
@@ -221,7 +221,7 @@ providers:
     status: "real"
     upstream: scamalytics
     method: api
-    requires_key: true       # official API only â€” NEVER scrape (Â§5.4)
+    requires_key: true       # official API only — NEVER scrape (§5.4)
     weight_in_category: 0.25
     timeout_ms: 8000
     rate_limit: 0
@@ -230,13 +230,13 @@ providers:
       clean_below: 20
       bad_above: 70
 
-  # ---- secondary proxy/hosting hints (not primary fraud votes, Â§5.2) ----
+  # ---- secondary proxy/hosting hints (not primary fraud votes, §5.2) ----
   - id: ip_api_flags
     category: fraud
     implemented: true
     adapter_file: "providers/ip_api.rs"
     status: "real"
-    upstream: ip-api          # same upstream as ip_api â‡’ collapses into one vote (Â§6.2)
+    upstream: ip-api          # same upstream as ip_api ⇒ collapses into one vote (§6.2)
     method: api
     requires_key: false
     weight_in_category: 0.05
@@ -249,7 +249,7 @@ providers:
     implemented: true
     adapter_file: "providers/ipinfo.rs"
     status: "real"
-    upstream: ipinfo          # same upstream as ipinfo â‡’ collapses into one vote (Â§6.2)
+    upstream: ipinfo          # same upstream as ipinfo ⇒ collapses into one vote (§6.2)
     method: api
     requires_key: true
     weight_in_category: 0.05
@@ -258,7 +258,7 @@ providers:
     enabled_by_default: true
 
   # ===================================================================
-  # Â§5.3 â€” ABUSE / THREAT INTEL
+  # §5.3 — ABUSE / THREAT INTEL
   # ===================================================================
   - id: abuseipdb
     category: abuse
@@ -272,7 +272,7 @@ providers:
     timeout_ms: 8000
     rate_limit: 0
     enabled_by_default: true
-    thresholds:               # Â§6.1: abuseConfidenceScore
+    thresholds:               # §6.1: abuseConfidenceScore
       clean_below: 10         # user requirement: < 10% is "clean"
       bad_above: 50
     fields:                   # what the adapter must surface
@@ -315,7 +315,7 @@ providers:
     status: "planned"
     upstream: virustotal
     method: api
-    requires_key: true        # free key, secondary evidence only (Â§5.3)
+    requires_key: true        # free key, secondary evidence only (§5.3)
     weight_in_category: 0.30
     timeout_ms: 8000
     rate_limit: 0
@@ -336,15 +336,15 @@ providers:
     timeout_ms: 7000
     rate_limit: 0
     enabled_by_default: false
-    notes: "Feodo / URLhaus â€” only a positive hit counts, never a primary vote (Â§5.3)"
+    notes: "Feodo / URLhaus — only a positive hit counts, never a primary vote (§5.3)"
 
   # ===================================================================
-  # Â§5.3 â€” DNSBL, four groups, queried directly over DNS.
-  # Target 40â€“50 zones (Â§5.3); every zone below must be re-verified live
+  # §5.3 — DNSBL, four groups, queried directly over DNS.
+  # Target 40–50 zones (§5.3); every zone below must be re-verified live
   # at implementation time. A dead zone is disabled + logged, never fatal.
   # ===================================================================
 
-  # ---- group: spamhaus (listing â‡’ Bad, and triggers the Â§6.5 downgrade) ----
+  # ---- group: spamhaus (listing ⇒ Bad, and triggers the §6.5 downgrade) ----
   - id: spamhaus_zen
     category: blacklist
     implemented: true
@@ -360,7 +360,7 @@ providers:
     zone: zen.spamhaus.org
     group: spamhaus
     listed_verdict: bad
-    notes: "SBL/XBL/PBL combined. Fair-use policy â€” low query volume only (Â§14)."
+    notes: "SBL/XBL/PBL combined. Fair-use policy — low query volume only (§14)."
 
   - id: spamhaus_sbl
     category: blacklist
@@ -427,7 +427,7 @@ providers:
     zone: b.barracudacentral.org
     group: commercial
     listed_verdict: bad
-    notes: "Requires free registration for bulk use â€” verify terms at implement time."
+    notes: "Requires free registration for bulk use — verify terms at implement time."
 
   - id: spamrats
     category: blacklist
@@ -541,7 +541,7 @@ providers:
     zone: dnsbl-1.uceprotect.net
     group: community
     listed_verdict: suspicious
-    notes: "L1 only â€” L2/L3 are pay-to-delist and massively over-report."
+    notes: "L1 only — L2/L3 are pay-to-delist and massively over-report."
 
   - id: uceprotect_2
     category: blacklist
@@ -625,7 +625,7 @@ providers:
     zone: torexit.dan.me.uk
     group: specialist
     listed_verdict: bad
-    notes: "Tor exit â‡’ Â§6.5 downgrade. Also falls back to the Tor Project exit list."
+    notes: "Tor exit ⇒ §6.5 downgrade. Also falls back to the Tor Project exit list."
 
   - id: dronebl
     category: blacklist
@@ -674,7 +674,7 @@ providers:
     zone: ips.backscatterer.org
     group: specialist
     listed_verdict: suspicious
-    notes: "Backscatter (misconfigured mailers) â€” noisy, keep weight low."
+    notes: "Backscatter (misconfigured mailers) — noisy, keep weight low."
 
   - id: spamhaus_dbl
     category: blacklist
@@ -691,10 +691,10 @@ providers:
     zone: dbl.spamhaus.org
     group: specialist
     listed_verdict: suspicious
-    notes: "Domain block list â€” only meaningful for domains, not bare IPs."
+    notes: "Domain block list — only meaningful for domains, not bare IPs."
 
   # ===================================================================
-  # Â§9 / Â§8 â€” NETWORK, LEAK, SPEED (proxy mode)
+  # §9 / §8 — NETWORK, LEAK, SPEED (proxy mode)
   # These are modules rather than providers; listed here so health and
   # timeouts are configured in one place.
   # ===================================================================
@@ -723,7 +723,7 @@ providers:
     timeout_ms: 8000
     rate_limit: 0
     enabled_by_default: true
-    notes: "Two echo endpoints (Â§8.1): httpbin.org/ip + ip.oxylabs.io"
+    notes: "Two echo endpoints (§8.1): httpbin.org/ip + ip.oxylabs.io"
 
   - id: browser_leak
     category: leak
@@ -731,13 +731,13 @@ providers:
     adapter_file: "browser_leak.rs"
     status: "real"
     upstream: local
-    method: local_db          # Chromium headless against a bundled page (Â§8.2)
+    method: local_db          # Chromium headless against a bundled page (§8.2)
     requires_key: false
     weight_in_category: 0.50
     timeout_ms: 8000
     rate_limit: 0
     enabled_by_default: true
-    notes: "Never scrapes whoer / browserleaks / ipleak / creepjs / bot.sannysoft (Â§5.4)."
+    notes: "Never scrapes whoer / browserleaks / ipleak / creepjs / bot.sannysoft (§5.4)."
 
   - id: speed_test
     category: speed
@@ -751,4 +751,4 @@ providers:
     timeout_ms: 8000
     rate_limit: 0
     enabled_by_default: true
-    notes: "Two CDN endpoints (Â§8.3); results are never cached (Â§10.2)."
+    notes: "Two CDN endpoints (§8.3); results are never cached (§10.2)."

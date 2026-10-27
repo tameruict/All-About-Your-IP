@@ -333,6 +333,9 @@ export function App() {
           if (partial.clean_score !== undefined) {
             result.clean_score = partial.clean_score as number | null;
           }
+          if (partial.clean_score_provisional !== undefined) {
+            result.clean_score_provisional = Boolean(partial.clean_score_provisional);
+          }
           if (partial.verdict !== undefined) {
             result.verdict = partial.verdict as any;
           }
@@ -746,6 +749,10 @@ export function App() {
           verdict={result?.verdict ?? null}
           verdictReason={result?.verdict_reason ?? null}
           cleanScore={result?.clean_score ?? null}
+          cleanScoreProvisional={Boolean(
+            result?.clean_score_provisional ||
+            (result?.verdict === "Chưa đủ dữ liệu" && result?.clean_score != null)
+          )}
           confidenceScore={result?.confidence_score ?? null}
           scoring={result?.scoring ?? null}
           live={ui.checking}
@@ -1162,7 +1169,11 @@ export function formatSummaryReport(result: FullCheckResult, lang: Language = "v
   const verdictLabel = getLocalizedVerdictMeta(result.verdict, norm).displayLabel;
   const cleanLabel =
     result.clean_score !== null && result.clean_score !== undefined
-      ? `${result.clean_score}/100`
+      ? `${result.clean_score}/100${
+          result.clean_score_provisional || result.verdict === "Chưa đủ dữ liệu"
+            ? " [tạm tính]"
+            : ""
+        }`
       : DASH;
   const locStr =
     [location?.city, location?.region, location?.country].filter(Boolean).join(", ") || DASH;

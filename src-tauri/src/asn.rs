@@ -99,7 +99,11 @@ pub fn aggregate(
         .as_ref()
         .and_then(|c| c.organisation.clone())
         .or_else(|| best_records.iter().find_map(|r| r.organisation.clone()))
-        .or_else(|| records.iter().find_map(|r| r.organisation.clone()));
+        .or_else(|| records.iter().find_map(|r| r.organisation.clone()))
+        .or_else(|| asn_name.clone());
+    let isp = isp
+        .or_else(|| organisation.clone())
+        .or_else(|| asn_name.clone());
     let prefix = chosen
         .as_ref()
         .and_then(|c| c.prefix.clone())

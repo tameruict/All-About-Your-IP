@@ -28,6 +28,7 @@ export interface VerdictHUDProps {
   verdict: Verdict | null;
   verdictReason: string | null;
   cleanScore: number | null;
+  cleanScoreProvisional?: boolean;
   confidenceScore: number | null;
   scoring?: ScoringResult | null;
   /** True while the scan is still streaming (drives the scanline state). */
@@ -107,6 +108,7 @@ export function VerdictHUD({
   verdict,
   verdictReason,
   cleanScore,
+  cleanScoreProvisional,
   confidenceScore,
   scoring,
   live,
@@ -134,7 +136,11 @@ export function VerdictHUD({
   }, []);
 
   const meta = getLocalizedVerdictMeta(verdict, lang);
-  const cleanTone = scoreTone(cleanScore);
+  const isProvisional = Boolean(
+    cleanScoreProvisional ||
+    (verdict === "Chưa đủ dữ liệu" && cleanScore !== null && cleanScore !== undefined)
+  );
+  const cleanTone = isProvisional ? "unknown" : scoreTone(cleanScore);
   const confTone = confidenceTone(confidenceScore);
 
   const conflicts: ConflictFlag[] = scoring?.conflicts ?? [];
@@ -149,7 +155,14 @@ export function VerdictHUD({
         {/* Clean Score — never merged with Confidence. */}
         <div className={cx("score", `score--${cleanTone}`)} title={`${t("verdict.clean_score")} (0–100)`}>
           <div className="score__head">
-            <div className="score__label">{t("verdict.clean_score")}</div>
+            <div className="score__label">
+              {t("verdict.clean_score")}
+              {isProvisional ? (
+                <span className="chip chip--unknown" title={t("verdict.provisional_hint")}>
+                  {t("verdict.provisional_badge")}
+                </span>
+              ) : null}
+            </div>
             <ScoreDial value={cleanScore} tone={cleanTone} live={live} />
           </div>
           <div className="score__value">

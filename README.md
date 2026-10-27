@@ -28,6 +28,8 @@ Pre-built binaries are ready to run on Windows 10 & 11 (64-bit):
 
 > 🔗 View the full changelog and SHA256 checksums on the [GitHub Releases page](https://github.com/tameruict/ip-checker/releases/tag/v0.1.0).
 
+> ⚠️ **Windows SmartScreen Note (§11)**: When launching for the first time, Windows Defender SmartScreen may show an untrusted warning. Click **More info** and select **Run anyway**. Offline databases (MaxMind / DB-IP) can be configured via the **Geo DB** tab in Settings.
+
 ---
 
 ## 💡 Overview
@@ -251,6 +253,48 @@ powershell -ExecutionPolicy Bypass -File scripts/build.ps1
 The production bundle will be produced in:
 - Portable executable: `src-tauri/target/release/ip-checker.exe`
 - NSIS Windows installer: `src-tauri/target/release/bundle/nsis/IP Checker_0.1.0_x64-setup.exe`
+
+---
+
+## 🏛️ Architecture & EGM Contract
+
+### Interface
+- **Frontend Entrypoint**: Web application bundled via Vite (`index.html`, `src/main.tsx`, `src/App.tsx`).
+- **Backend IPC API**: Tauri v2 command surface (`check_ip`, `check_ip_stream`, `get_history`, `get_check_detail`, `export_report`, `get_provider_health`, `save_settings`, `get_settings`, `save_provider_key`, `clear_provider_key`, `get_geo_db_versions`, `open_external`).
+- **CLI Diagnostic Interface**: Headless probe utility (`src-tauri/src/bin/probe.rs`) outputting single machine-readable JSON to stdout.
+- **Build & Verification Scripts**: PowerShell build pipeline (`scripts/build.ps1`) and smoke runner (`scripts/smoke.ps1`).
+
+### Invariants
+- **Deterministic Consensus**: No single external provider can hold more than 40% weight within any scoring aspect or unilaterally dictate the final verdict.
+- **Quorum Enforcement**: Incomplete provider coverage forces `provisional = true` and restricts the final verdict to `"Chưa đủ dữ liệu"`.
+- **Mode Isolation**: Proxy-specific measurements (DNS leak, WebRTC leak, synthetic speed) explicitly render `"Chưa đo được — cần nhập proxy"` in IP-only mode without inventing mock values.
+- **Authoritative Validation**: All input addresses and proxy endpoints are authoritatively validated by Rust (`validator.rs`); private and non-routable IP addresses are rejected before dispatching network sockets.
+- **Zero Plaintext Secrets**: User API keys are stored exclusively in the Windows Credential Manager and never logged, exported, or persisted in SQLite.
+
+### Side Effects
+- **Network I/O**: Performs parallel outbound HTTPS queries to threat intelligence REST APIs, concurrent DNSBL lookups over UDP/TCP port 53, ICMP echo requests, and synthetic HTTP download tests over configured proxies.
+- **Local Persistence**: Writes check logs and audit history to local SQLite database (`ip-checker.db`); writes exported files (JSON, CSV, Markdown) to user-selected paths.
+- **OS Credential Storage**: Reads and writes encrypted secrets via Windows Credential Manager API.
+
+### Subdirectories & System Boundaries
+- [`scripts`](./scripts/README.md): Automated reproducible build, asset generation, and smoke test scripts.
+- [`src`](./src/README.md): React 18 TypeScript frontend, UI cards, design tokens, and IPC wrappers.
+- [`src-tauri`](./src-tauri/README.md): Tauri v2 desktop container, Rust core library, scoring engine, SQLite cache, and provider adapters.
+
+### Verification
+
+To verify the complete project tree:
+```powershell
+# Frontend TypeScript & React unit tests
+npm --prefix . run typecheck
+node --test src/components/ui/keyErrors.test.mjs src/components/ui/meta.test.mjs src/lib/i18n.test.mjs
+
+# Backend Rust cargo verification
+cargo check --manifest-path src-tauri/Cargo.toml
+
+# Smoke test verification gates
+powershell -ExecutionPolicy Bypass -File scripts/smoke.ps1 -SkipLaunch
+```
 
 ---
 

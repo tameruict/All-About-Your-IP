@@ -158,6 +158,7 @@ async fn main() -> ExitCode {
         "verdict": result.verdict,
         "verdict_reason": result.verdict_reason,
         "clean_score": result.clean_score,
+        "clean_score_provisional": result.clean_score_provisional,
         "confidence_score": result.confidence_score,
         "evidence_count": evidence,
         "is_private": result.is_private,

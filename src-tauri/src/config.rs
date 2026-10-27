@@ -161,13 +161,13 @@ pub fn normalise(mut settings: Settings) -> Settings {
 pub fn merge_registry_defaults(settings: &mut Settings, registry: &Registry) {
     use crate::models::ProviderSetting;
 
-    let supported: std::collections::HashSet<String> = registry
+    let missing_adapters: std::collections::HashSet<String> = registry
         .unmatched_adapters()
         .into_iter()
         .collect();
 
     for meta in &registry.providers {
-        let has_adapter = !supported.contains(&meta.id);
+        let has_adapter = !missing_adapters.contains(&meta.id);
         match settings.providers.iter_mut().find(|p| p.provider == meta.id) {
             Some(existing) => {
                 // A row without an adapter can never run; keep it visible but off.

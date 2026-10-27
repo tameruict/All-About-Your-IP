@@ -305,6 +305,7 @@ function parseCargoTestLog(text) {
     const targetRoot = process.env.CARGO_TARGET_DIR || path.join(PROJECT_ROOT, 'src-tauri', 'target');
     const candidates = [
       path.join(targetRoot, 'debug', 'probe.exe'),
+      path.join(process.env.USERPROFILE || '', '.cargo', 'check-ip-target', 'debug', 'probe.exe'),
       'C:\\cargo-target\\ip-checker\\debug\\probe.exe',
       'C:\\cargo-target\\ip-review-lead\\debug\\probe.exe',
       path.join(PROJECT_ROOT, 'src-tauri', 'target', 'debug', 'probe.exe'),
@@ -383,8 +384,13 @@ function parseCargoTestLog(text) {
         // evidence + score integrity: never a fabricated number.
         g.assert(payload.evidence_count >= 1, `${payload.evidence_count} provider evidence row(s)`);
         if (payload.verdict === V_CHUA_DU) {
-          g.assert(payload.clean_score === null || payload.clean_score === undefined,
-            'verdict "not enough data" carries NO clean score — never fabricated');
+          g.assert(
+            payload.clean_score === null ||
+              payload.clean_score === undefined ||
+              (typeof payload.clean_score === 'number' &&
+                payload.clean_score_provisional === true),
+            'verdict "not enough data" carries null or provisional clean score with clean_score_provisional = true'
+          );
         } else {
           g.assert(typeof payload.clean_score === 'number',
             `clean_score present for a decided verdict (got ${JSON.stringify(payload.clean_score)})`);
@@ -600,11 +606,18 @@ function parseCargoTestLog(text) {
   if (probeFixture) {
     g.assert(probeFixture.modules?.skipped >= 1, `${probeFixture.modules?.skipped || 0} module(s) skipped in probe data`);
     g.assert(probeFixture.verdict === V_CHUA_DU, `probe verdict capped at "${V_CHUA_DU}" without fraud quorum`);
-    g.assert(probeFixture.clean_score === null, 'clean_score is strictly null when quorum not met (never fabricated)');
+    g.assert(
+      probeFixture.clean_score === null ||
+        (typeof probeFixture.clean_score === 'number' &&
+          probeFixture.clean_score_provisional === true),
+      'clean_score is null or provisional (with clean_score_provisional=true) when quorum not met'
+    );
   }
 
   const yaml = readText(path.join(PROJECT_ROOT, 'providers.yaml'));
   if (yaml) {
+    const hasMojibake = /Â§|â‡’|â†’|â€”|â€“|â‰¤|â‰¥|ChÆ°a|phÃºt/.test(yaml);
+    g.assert(!hasMojibake, 'providers.yaml contains zero UTF-8 mojibake');
     const needsKey = (yaml.match(/requires_key\s*:\s*true/g) || []).length;
     const noKey = (yaml.match(/requires_key\s*:\s*false/g) || []).length;
     g.assert(needsKey >= 4, `providers.yaml: ${needsKey} providers need a key`);

@@ -66,7 +66,7 @@ export function InputConsole({
   const [protocol, setProtocol] = useState<ProxyProtocol>(initialProtocol ?? "http");
   const [saveToHistory, setSaveToHistory] = useState(true);
   const [credOpen, setCredOpen] = useState(false);
-  const [username, setunknown-user] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [clipboardAvailable, setClipboardAvailable] = useState(false);
 
@@ -127,7 +127,7 @@ export function InputConsole({
 
   const handleClear = useCallback(() => {
     setRaw("");
-    setunknown-user("");
+    setUsername("");
     setPassword("");
     setCredOpen(false);
     onParsedChange?.(parseInput(""));
@@ -137,7 +137,7 @@ export function InputConsole({
     (next: string) => {
       const extracted = extractProxyParts(next);
       if (extracted.credentials) {
-        setunknown-user(extracted.credentials.username);
+        setUsername(extracted.credentials.username);
         setPassword(extracted.credentials.password);
         setCredOpen(true);
       }
@@ -164,7 +164,7 @@ export function InputConsole({
       ) {
         event.preventDefault();
         if (extracted.credentials) {
-          setunknown-user(extracted.credentials.username);
+          setUsername(extracted.credentials.username);
           setPassword(extracted.credentials.password);
           setCredOpen(true);
         }
@@ -197,7 +197,7 @@ export function InputConsole({
     });
 
     // Credentials never outlive the request (§8.4).
-    setunknown-user("");
+    setUsername("");
     setPassword("");
     setCredOpen(false);
   }, [disabled, onSubmit, password, protocol, raw, saveToHistory, scanning, username]);
@@ -211,14 +211,14 @@ export function InputConsole({
       if (!trimmed) return;
 
       const extracted = extractProxyParts(trimmed);
-      let curunknown-user = username;
+      let curUsername = username;
       let curPassword = password;
       let curProtocol = protocol;
 
       if (extracted.credentials) {
-        curunknown-user = extracted.credentials.username;
+        curUsername = extracted.credentials.username;
         curPassword = extracted.credentials.password;
-        setunknown-user(curunknown-user);
+        setUsername(curUsername);
         setPassword(curPassword);
         setCredOpen(true);
       }
@@ -234,8 +234,8 @@ export function InputConsole({
 
       if (isScannable(parsedNow)) {
         const credentials: ProxyCredentials | null =
-          parsedNow.kind === "proxy" && (curunknown-user.length > 0 || curPassword.length > 0)
-            ? { username: curunknown-user, password: curPassword }
+          parsedNow.kind === "proxy" && (curUsername.length > 0 || curPassword.length > 0)
+            ? { username: curUsername, password: curPassword }
             : null;
 
         onSubmit({
@@ -246,7 +246,7 @@ export function InputConsole({
           saveToHistory,
         });
 
-        setunknown-user("");
+        setUsername("");
         setPassword("");
         setCredOpen(false);
       }
@@ -424,14 +424,14 @@ export function InputConsole({
       {credOpen && parsed.kind === "proxy" ? (
         <div className="console__row">
           <label className="sr-only" htmlFor={`${inputId}-user`}>
-            {lang === "en" ? "Proxy username" : lang === "zh" ? "代理用户名" : "unknown-user proxy"}
+            {lang === "en" ? "Proxy username" : lang === "zh" ? "代理用户名" : "Tên đăng nhập proxy"}
           </label>
           <input
             id={`${inputId}-user`}
             className="input input--sm"
             style={{ maxWidth: 200 }}
             value={username}
-            onChange={(event) => setunknown-user(event.target.value)}
+            onChange={(event) => setUsername(event.target.value)}
             placeholder={t("input.username")}
             autoComplete="off"
             spellCheck={false}

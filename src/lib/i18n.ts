@@ -125,6 +125,8 @@ export interface I18nDictionary {
     duration: string;
     live_updating: string;
     final_result: string;
+    provisional_badge: string;
+    provisional_hint: string;
   };
   progress: {
     title: string;
@@ -532,6 +534,8 @@ export const VI_DICTIONARY: I18nDictionary = {
     duration: "Thời gian: {duration}s",
     live_updating: "đang cập nhật trực tiếp",
     final_result: "kết quả cuối",
+    provisional_badge: "TẠM TÍNH",
+    provisional_hint: "Điểm tạm tính — chưa đủ quorum dữ liệu",
   },
   progress: {
     title: "Tiến trình quét",
@@ -935,6 +939,8 @@ export const EN_DICTIONARY: I18nDictionary = {
     duration: "Duration: {duration}s",
     live_updating: "live updating",
     final_result: "final result",
+    provisional_badge: "PROVISIONAL",
+    provisional_hint: "Provisional score — quorum not met",
   },
   progress: {
     title: "Scan Progress",
@@ -1338,6 +1344,8 @@ export const ZH_DICTIONARY: I18nDictionary = {
     duration: "耗时: {duration}s",
     live_updating: "实时更新中",
     final_result: "最终结果",
+    provisional_badge: "暂定",
+    provisional_hint: "暂定分数 — 未达法定数据源数量",
   },
   progress: {
     title: "扫描进度",
