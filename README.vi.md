@@ -4,8 +4,8 @@
 
 **Công cụ kiểm tra độ sạch IP, định vị đa nguồn & phát hiện rò rỉ Proxy chuyên sâu cho Windows**
 
-[![Bản phát hành](https://img.shields.io/badge/B%E1%BA%A3n%20ph%C3%A1t%20h%C3%A0nh-v0.1.0-blue.svg?style=flat-square)](https://github.com/tameruict/ip-checker/releases/tag/v0.1.0)
-[![Nền tảng](https://img.shields.io/badge/N%E1%BB%81n%20t%E1%BA%A3ng-Windows%2010%2B%20(x64)-0078D6.svg?style=flat-square&logo=windows)](https://github.com/tameruict/ip-checker/releases)
+[![Bản phát hành](https://img.shields.io/badge/B%E1%BA%A3n%20ph%C3%A1t%20h%C3%A0nh-v0.1.1-blue.svg?style=flat-square)](https://github.com/tameruict/All-About-Your-IP/releases/tag/v0.1.1)
+[![Nền tảng](https://img.shields.io/badge/N%E1%BB%81n%20t%E1%BA%A3ng-Windows%2010%2B%20(x64)-0078D6.svg?style=flat-square&logo=windows)](https://github.com/tameruict/All-About-Your-IP/releases)
 [![Rust](https://img.shields.io/badge/Rust-1.77%2B-orange.svg?style=flat-square&logo=rust)](https://www.rust-lang.org/)
 [![Tauri](https://img.shields.io/badge/Tauri-v2-24C8D8.svg?style=flat-square&logo=tauri)](https://tauri.app/)
 [![React](https://img.shields.io/badge/React-18-61DAFB.svg?style=flat-square&logo=react)](https://react.dev/)
@@ -17,16 +17,16 @@
 
 ---
 
-## 📥 Tải về bản cài đặt (Release v0.1.0)
+## 📥 Tải về bản cài đặt (Release v0.1.1)
 
 Phần mềm đã được đóng gói sẵn sàng sử dụng trên hệ điều hành Windows 10 & 11 (64-bit):
 
 | Gói cài đặt | Định dạng | Dung lượng | Mô tả | Liên kết tải |
 |---|---|---|---|---|
-| **Bản chạy ngay (Portable)** | `.exe` | ~8.5 MB | File thực thi độc lập, không cần cài đặt. Tải về nhấp đúp là chạy ngay. | [**ip-checker.exe**](https://github.com/tameruict/ip-checker/releases/download/v0.1.0/ip-checker.exe) |
-| **Bộ cài đặt Windows** | `.exe` (NSIS) | ~4.0 MB | Trình cài đặt tiêu chuẩn, tự tạo shortcut Desktop, Start Menu và gỡ cài đặt sạch sẽ. | [**IP.Checker_0.1.0_x64-setup.exe**](https://github.com/tameruict/ip-checker/releases/download/v0.1.0/IP.Checker_0.1.0_x64-setup.exe) |
+| **Bản chạy ngay (Portable)** | `.exe` | ~8.5 MB | File thực thi độc lập, không cần cài đặt. Tải về nhấp đúp là chạy ngay. | [**ip-checker.exe**](https://github.com/tameruict/All-About-Your-IP/releases/download/v0.1.1/ip-checker.exe) |
+| **Bộ cài đặt Windows** | `.exe` (NSIS) | ~4.0 MB | Trình cài đặt tiêu chuẩn, tự tạo shortcut Desktop, Start Menu và gỡ cài đặt sạch sẽ. | [**IP.Checker_0.1.1_x64-setup.exe**](https://github.com/tameruict/All-About-Your-IP/releases/download/v0.1.1/IP.Checker_0.1.1_x64-setup.exe) |
 
-> 🔗 Xem chi tiết danh sách cập nhật và mã băm SHA256 tại [Trang phát hành GitHub Releases](https://github.com/tameruict/ip-checker/releases/tag/v0.1.0).
+> 🔗 Xem chi tiết danh sách cập nhật và mã băm SHA256 tại [Trang phát hành GitHub Releases](https://github.com/tameruict/All-About-Your-IP/releases/tag/v0.1.1).
 
 ---
 

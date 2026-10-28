@@ -4,8 +4,8 @@
 
 **Multi-Source IP Reputation, Location Triangulation & Proxy Leak Checker for Windows**
 
-[![Release](https://img.shields.io/badge/Release-v0.1.0-blue.svg?style=flat-square)](https://github.com/tameruict/ip-checker/releases/tag/v0.1.0)
-[![Platform](https://img.shields.io/badge/Platform-Windows%2010%2B%20(x64)-0078D6.svg?style=flat-square&logo=windows)](https://github.com/tameruict/ip-checker/releases)
+[![Release](https://img.shields.io/badge/Release-v0.1.1-blue.svg?style=flat-square)](https://github.com/tameruict/All-About-Your-IP/releases/tag/v0.1.1)
+[![Platform](https://img.shields.io/badge/Platform-Windows%2010%2B%20(x64)-0078D6.svg?style=flat-square&logo=windows)](https://github.com/tameruict/All-About-Your-IP/releases)
 [![Rust](https://img.shields.io/badge/Rust-1.77%2B-orange.svg?style=flat-square&logo=rust)](https://www.rust-lang.org/)
 [![Tauri](https://img.shields.io/badge/Tauri-v2-24C8D8.svg?style=flat-square&logo=tauri)](https://tauri.app/)
 [![React](https://img.shields.io/badge/React-18-61DAFB.svg?style=flat-square&logo=react)](https://react.dev/)
@@ -17,16 +17,16 @@
 
 ---
 
-## 📥 Downloads (Release v0.1.0)
+## 📥 Downloads (Release v0.1.1)
 
 Pre-built binaries are ready to run on Windows 10 & 11 (64-bit):
 
 | Package | Format | File Size | Description | Download |
 |---|---|---|---|---|
-| **Portable Executable** | `.exe` | ~8.5 MB | Standalone portable binary, no installation required. Runs anywhere. | [**ip-checker.exe**](https://github.com/tameruict/ip-checker/releases/download/v0.1.0/ip-checker.exe) |
-| **Windows Installer** | `.exe` (NSIS) | ~4.0 MB | Standard Windows Setup with desktop shortcut and uninstaller. | [**IP.Checker_0.1.0_x64-setup.exe**](https://github.com/tameruict/ip-checker/releases/download/v0.1.0/IP.Checker_0.1.0_x64-setup.exe) |
+| **Portable Executable** | `.exe` | ~8.5 MB | Standalone portable binary, no installation required. Runs anywhere. | [**ip-checker.exe**](https://github.com/tameruict/All-About-Your-IP/releases/download/v0.1.1/ip-checker.exe) |
+| **Windows Installer** | `.exe` (NSIS) | ~4.0 MB | Standard Windows Setup with desktop shortcut and uninstaller. | [**IP.Checker_0.1.1_x64-setup.exe**](https://github.com/tameruict/All-About-Your-IP/releases/download/v0.1.1/IP.Checker_0.1.1_x64-setup.exe) |
 
-> 🔗 View the full changelog and SHA256 checksums on the [GitHub Releases page](https://github.com/tameruict/ip-checker/releases/tag/v0.1.0).
+> 🔗 View the full changelog and SHA256 checksums on the [GitHub Releases page](https://github.com/tameruict/All-About-Your-IP/releases/tag/v0.1.1).
 
 > ⚠️ **Windows SmartScreen Note (§11)**: When launching for the first time, Windows Defender SmartScreen may show an untrusted warning. Click **More info** and select **Run anyway**. Offline databases (MaxMind / DB-IP) can be configured via the **Geo DB** tab in Settings.
 

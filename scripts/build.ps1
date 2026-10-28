@@ -251,7 +251,7 @@ if (-not (Test-Path -LiteralPath $tauriCmd)) { $tauriCmd = 'tauri' }
 
 $tauriArgs = @('build')
 if ($NoBundle) { $tauriArgs += '--no-bundle' }
-if ($BuildNumber) { $tauriArgs += @('--config', "{`"version`":`"0.1.0+$BuildNumber`"}") }
+if ($BuildNumber) { $tauriArgs += @('--config', "{`"version`":`"0.1.1+$BuildNumber`"}") }
 if ($env:TAURI_SIGNING_PRIVATE_KEY) { Write-Info 'updater signing key detected -- artifacts will be signed' }
 else { Write-Warn2 'TAURI_SIGNING_PRIVATE_KEY not set -- release stays unsigned (SmartScreen warning, see README)' }
 
