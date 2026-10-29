@@ -4,7 +4,7 @@
 
 **专为 Windows 设计的多源 IP 信誉评估、位置交叉校验与代理泄漏检测工具**
 
-[![发布版本](https://img.shields.io/badge/%E5%8F%91%E5%B8%83%E7%89%88%E6%9C%AC-v0.1.1-blue.svg?style=flat-square)](https://github.com/tameruict/All-About-Your-IP/releases/tag/v0.1.1)
+[![发布版本](https://img.shields.io/badge/%E5%8F%91%E5%B8%83%E7%89%88%E6%9C%AC-v0.1.2-blue.svg?style=flat-square)](https://github.com/tameruict/All-About-Your-IP/releases/tag/v0.1.2)
 [![运行平台](https://img.shields.io/badge/%E8%BF%90%E8%A1%8C%E5%B9%B3%E5%8F%B0-Windows%2010%2B%20(x64)-0078D6.svg?style=flat-square&logo=windows)](https://github.com/tameruict/All-About-Your-IP/releases)
 [![Rust](https://img.shields.io/badge/Rust-1.77%2B-orange.svg?style=flat-square&logo=rust)](https://www.rust-lang.org/)
 [![Tauri](https://img.shields.io/badge/Tauri-v2-24C8D8.svg?style=flat-square&logo=tauri)](https://tauri.app/)
@@ -17,16 +17,16 @@
 
 ---
 
-## 📥 软件下载 (Release v0.1.1)
+## 📥 软件下载 (Release v0.1.2)
 
 已构建完成并可直接在 Windows 10 & 11 (64位) 上运行：
 
 | 安装包类型 | 文件格式 | 文件大小 | 功能描述 | 下载链接 |
 |---|---|---|---|---|
-| **免安装便携版 (Portable)** | `.exe` | 约 8.5 MB | 单文件直接运行，无需安装，随存随用。 | [**ip-checker.exe**](https://github.com/tameruict/All-About-Your-IP/releases/download/v0.1.1/ip-checker.exe) |
-| **标准安装包 (Installer)** | `.exe` (NSIS) | 约 4.0 MB | 包含桌面快捷方式与完整卸载向导的标准 Windows 安装程序。 | [**IP.Checker_0.1.1_x64-setup.exe**](https://github.com/tameruict/All-About-Your-IP/releases/download/v0.1.1/IP.Checker_0.1.1_x64-setup.exe) |
+| **免安装便携版 (Portable)** | `.exe` | 约 8.5 MB | 单文件直接运行，无需安装，随存随用。 | [**ip-checker.exe**](https://github.com/tameruict/All-About-Your-IP/releases/download/v0.1.2/ip-checker.exe) |
+| **标准安装包 (Installer)** | `.exe` (NSIS) | 约 4.0 MB | 包含桌面快捷方式与完整卸载向导的标准 Windows 安装程序。 | [**IP.Checker_0.1.2_x64-setup.exe**](https://github.com/tameruict/All-About-Your-IP/releases/download/v0.1.2/IP.Checker_0.1.2_x64-setup.exe) |
 
-> 🔗 完整变更日志及 SHA256 校验和请查看 [GitHub Releases 页面](https://github.com/tameruict/All-About-Your-IP/releases/tag/v0.1.1)。
+> 🔗 完整变更日志及 SHA256 校验和请查看 [GitHub Releases 页面](https://github.com/tameruict/All-About-Your-IP/releases/tag/v0.1.2)。
 
 ---
 

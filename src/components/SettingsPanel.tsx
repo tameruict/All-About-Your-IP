@@ -349,11 +349,13 @@ export function SettingsPanel({
                               spellCheck={false}
                               value={keyInputs[item.provider] ?? ""}
                               placeholder={
-                                item.has_key
-                                  ? t("settings.enter_new_key")
-                                  : optionalKey
-                                    ? t("settings.optional_key_hint")
-                                    : t("settings.paste_api_key")
+                                item.provider === "scamalytics"
+                                  ? (item.has_key ? `${t("settings.enter_new_key")} (user:key)` : "username:api_key")
+                                  : item.has_key
+                                    ? t("settings.enter_new_key")
+                                    : optionalKey
+                                      ? t("settings.optional_key_hint")
+                                      : t("settings.paste_api_key")
                               }
                               onChange={(event) =>
                                 setKeyInputs((current) => ({ ...current, [item.provider]: event.target.value }))

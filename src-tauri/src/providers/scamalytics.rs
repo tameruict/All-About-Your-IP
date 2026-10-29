@@ -32,7 +32,7 @@ pub const ID: &str = "scamalytics";
 /// Root data source, for vote de-duplication (§6.2).
 pub const UPSTREAM: &str = "scamalytics";
 
-/// Production API endpoint pattern: `/v3/{user}/{key}/?ip={ip}`.
+/// Production API endpoint pattern: `/v3/{user}/?key={key}&ip={ip}`.
 ///
 /// Scamalytics issues a *user id* and an *API key* as a pair, so the credential
 /// stored in Credential Manager is `"user:key"`.
@@ -109,10 +109,10 @@ impl Adapter {
         self.credential.is_some()
     }
 
-    /// `GET {base}/{user}/{key}/?ip={ip}`
+    /// `GET {base}/{user}/?key={key}&ip={ip}`
     pub fn endpoint(&self, ip: &IpAddr) -> String {
         match &self.credential {
-            Some((user, key)) => format!("{}/{}/{}/?ip={}", self.base_url, user, key, ip),
+            Some((user, key)) => format!("{}/{}/?key={}&ip={}", self.base_url, user, key, ip),
             None => format!("{}/?ip={}", self.base_url, ip),
         }
     }
@@ -130,15 +130,21 @@ impl Default for Adapter {
     }
 }
 
-/// Split a `"user:key"` credential. A credential without `:` is treated as
-/// unusable rather than being guessed into one half.
+/// Split a `"user:key"` (or `"user/key"`) credential. A credential without
+/// delimiter is treated as unusable.
 pub fn parse_credential(raw: Option<String>) -> Option<(String, String)> {
     let raw = raw?;
     let raw = raw.trim();
     if raw.is_empty() {
         return None;
     }
-    let (user, key) = raw.split_once(':')?;
+    let (user, key) = if let Some(pair) = raw.split_once(':') {
+        pair
+    } else if let Some(pair) = raw.split_once('/') {
+        pair
+    } else {
+        return None;
+    };
     let (user, key) = (user.trim(), key.trim());
     if user.is_empty() || key.is_empty() {
         return None;
@@ -192,14 +198,25 @@ pub fn build_evidence(
     thresholds: Option<&Thresholds>,
     latency_ms: u64,
 ) -> Result<ProviderEvidence, ProviderError> {
-    let status = body.get("status").and_then(Value::as_str).unwrap_or("");
+    let data = body.get("scamalytics").unwrap_or(body);
+
+    let status = data
+        .get("status")
+        .or_else(|| body.get("status"))
+        .and_then(Value::as_str)
+        .unwrap_or("");
 
     if status == "error" {
-        let error = body
+        let error = data
             .get("error")
+            .or_else(|| body.get("error"))
             .and_then(Value::as_str)
             .unwrap_or("scamalytics error");
-        let message = body.get("message").and_then(Value::as_str).unwrap_or("");
+        let message = data
+            .get("message")
+            .or_else(|| body.get("message"))
+            .and_then(Value::as_str)
+            .unwrap_or("");
         let lower = format!("{error} {message}").to_ascii_lowercase();
         if lower.contains("quota") || lower.contains("credit") || lower.contains("limit") {
             return Err(super::ip_api::err_quota(ID, 403, Some(message)));
@@ -214,21 +231,60 @@ pub fn build_evidence(
         return Err(status_error(ID, 400, Some(status)));
     }
 
-    let score = body
+    let score = data
         .get("scamalytics_score")
-        .and_then(Value::as_f64)
+        .or_else(|| data.get("score"))
+        .or_else(|| body.get("scamalytics_score"))
+        .or_else(|| body.get("score"))
+        .and_then(|v| v.as_f64().or_else(|| v.as_u64().map(|u| u as f64)))
         .ok_or_else(|| err_parse(ID, "thiếu scamalytics_score"))?;
 
-    let proxy = body.get("proxy").and_then(Value::as_bool).unwrap_or(false);
-    let vpn = body.get("vpn").and_then(Value::as_bool).unwrap_or(false);
-    let tor = body.get("tor").and_then(Value::as_bool).unwrap_or(false);
-    let server = body.get("server").and_then(Value::as_bool).unwrap_or(false);
-    let anonymizing_vpn = body
-        .get("anonymizing_vpn_network")
+    let proxy_obj = data.get("scamalytics_proxy").or_else(|| body.get("scamalytics_proxy"));
+
+    let proxy = proxy_obj
+        .and_then(|p| p.get("is_resproxy"))
         .and_then(Value::as_bool)
+        .or_else(|| data.get("proxy").and_then(Value::as_bool))
+        .or_else(|| body.get("proxy").and_then(Value::as_bool))
         .unwrap_or(false);
-    let blocklisted = body
+
+    let vpn = proxy_obj
+        .and_then(|p| p.get("is_vpn"))
+        .and_then(Value::as_bool)
+        .or_else(|| data.get("vpn").and_then(Value::as_bool))
+        .or_else(|| body.get("vpn").and_then(Value::as_bool))
+        .unwrap_or(false);
+
+    let tor = proxy_obj
+        .and_then(|p| p.get("is_tor"))
+        .and_then(Value::as_bool)
+        .or_else(|| data.get("tor").and_then(Value::as_bool))
+        .or_else(|| body.get("tor").and_then(Value::as_bool))
+        .or_else(|| {
+            body.get("external_datasources")
+                .and_then(|d| d.get("x4bnet"))
+                .and_then(|x| x.get("is_tor"))
+                .and_then(Value::as_bool)
+        })
+        .unwrap_or(false);
+
+    let server = proxy_obj
+        .and_then(|p| p.get("is_datacenter"))
+        .and_then(Value::as_bool)
+        .or_else(|| data.get("server").and_then(Value::as_bool))
+        .or_else(|| body.get("server").and_then(Value::as_bool))
+        .unwrap_or(false);
+
+    let anonymizing_vpn = proxy_obj
+        .and_then(|p| p.get("is_apple_icloud_private_relay"))
+        .and_then(Value::as_bool)
+        .or_else(|| data.get("anonymizing_vpn_network").and_then(Value::as_bool))
+        .or_else(|| body.get("anonymizing_vpn_network").and_then(Value::as_bool))
+        .unwrap_or(false);
+
+    let blocklisted = data
         .get("blocklisted_ips")
+        .or_else(|| body.get("blocklisted_ips"))
         .and_then(Value::as_u64)
         .unwrap_or(0);
 
@@ -261,20 +317,20 @@ pub fn build_evidence(
 
     let raw = serde_json::json!({
         "scamalytics_score": score,
-        "scamalytics_risk": body.get("scamalytics_risk"),
-        "score_color": body.get("score_color"),
-        "country": body.get("country"),
-        "country_code": body.get("country_code"),
-        "isp": body.get("isp"),
-        "organization": body.get("organization"),
-        "asn": body.get("asn"),
+        "scamalytics_risk": data.get("scamalytics_risk").or_else(|| data.get("risk")).or_else(|| body.get("scamalytics_risk")),
+        "score_color": data.get("score_color").or_else(|| body.get("score_color")),
+        "country": data.get("country").or_else(|| body.get("country")),
+        "country_code": data.get("country_code").or_else(|| body.get("country_code")),
+        "isp": data.get("scamalytics_isp").or_else(|| data.get("isp")).or_else(|| data.get("ISP Name")).or_else(|| body.get("isp")),
+        "organization": data.get("scamalytics_org").or_else(|| data.get("organization")).or_else(|| data.get("Organization Name")).or_else(|| body.get("organization")),
+        "asn": data.get("asn").or_else(|| data.get("as_number")).or_else(|| body.get("asn")),
         "proxy": proxy,
         "vpn": vpn,
         "tor": tor,
         "server": server,
         "anonymizing_vpn_network": anonymizing_vpn,
         "blocklisted_ips": blocklisted,
-        "last_seen": body.get("last_seen"),
+        "last_seen": data.get("last_seen").or_else(|| body.get("last_seen")),
     });
 
     Ok(evidence(
@@ -456,8 +512,43 @@ mod tests {
             parse_credential(Some("user:key".into())),
             Some(("user".into(), "key".into()))
         );
+        assert_eq!(
+            parse_credential(Some(" testuser : testkey ".into())),
+            Some(("testuser".into(), "testkey".into()))
+        );
+        assert_eq!(
+            parse_credential(Some("testuser/testkey".into())),
+            Some(("testuser".into(), "testkey".into()))
+        );
         assert_eq!(parse_credential(Some("nocolon".into())), None);
         assert_eq!(parse_credential(Some(" : ".into())), None);
         assert_eq!(parse_credential(None), None);
+    }
+
+    #[test]
+    fn scamalytics_endpoint_format() {
+        let a = Adapter::with_base_url(client(), API_BASE, Some("testuser:testkey".into()), None);
+        let ep = a.endpoint(&"8.8.8.8".parse().unwrap());
+        assert_eq!(ep, "https://api11.scamalytics.com/v3/testuser/?key=testkey&ip=8.8.8.8");
+    }
+
+    #[test]
+    fn scamalytics_v3_nested_response_parsed_properly() {
+        let json = serde_json::json!({
+            "scamalytics": {
+                "status": "ok",
+                "ip": "8.8.8.8",
+                "scamalytics_score": 15,
+                "scamalytics_risk": "low",
+                "scamalytics_proxy": {
+                    "is_datacenter": true,
+                    "is_vpn": false
+                }
+            }
+        });
+        let ev = build_evidence(&json, Some(&yaml_thresholds()), 50).expect("parse ok");
+        assert_eq!(ev.raw_score, Some(15.0));
+        assert_eq!(ev.signal, Signal::Clean);
+        assert!(ev.reason.unwrap().contains("server/hosting"));
     }
 }

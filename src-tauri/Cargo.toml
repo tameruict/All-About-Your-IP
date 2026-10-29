@@ -1,6 +1,6 @@
 [package]
 name = "ip-checker"
-version = "0.1.1"
+version = "0.1.2"
 description = "IP Checker — multi-source IP reputation, triangulation and proxy leak check"
 authors = ["IP Checker"]
 edition = "2021"

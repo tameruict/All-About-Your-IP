@@ -72,7 +72,7 @@
     },
     "scamalytics": {
       "requires_key": true,
-      "endpoint": "https://api11.scamalytics.com/v3/{user}/{key}/?ip={ip}",
+      "endpoint": "https://api11.scamalytics.com/v3/{user}/?key={key}&ip={ip}",
       "clean":     {"file": "scamalytics.clean.json"},
       "suspicious":{"file": "scamalytics.suspicious.json"},
       "bad":       {"file": "scamalytics.bad.json"},
